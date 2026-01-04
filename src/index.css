@@ -1,0 +1,15 @@
+:root {
+  /* Variables handled by MUI Theme now, but keeping font reference if needed */
+}
+
+body {
+  margin: 0;
+  /* Font family is handled by MUI Theme */
+  background-color: #f3f4f6;
+  /* Fallback */
+}
+
+/* 
+   MUI CssBaseline handles normalization.
+   Custom classes removed in favor of MUI sx prop.
+*/
