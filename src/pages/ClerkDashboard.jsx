@@ -21,6 +21,8 @@ import SendIcon from '@mui/icons-material/Send';
 import EditIcon from '@mui/icons-material/Edit';
 import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
 
+import { API_URL } from '../config';
+
 const ClerkDashboard = () => {
     const [requests, setRequests] = useState([]);
 
@@ -31,7 +33,7 @@ const ClerkDashboard = () => {
     const fetchRequests = async () => {
         const token = localStorage.getItem('token');
         try {
-            const response = await fetch('http://localhost:3000/api/requests', {
+            const response = await fetch(`${API_URL}/api/requests`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             if (response.ok) {
@@ -47,7 +49,7 @@ const ClerkDashboard = () => {
         if (!confirm('Are you sure you want to submit this request?')) return;
         const token = localStorage.getItem('token');
         try {
-            const response = await fetch(`http://localhost:3000/api/requests/${id}/submit`, {
+            const response = await fetch(`${API_URL}/api/requests/${id}/submit`, {
                 method: 'PUT',
                 headers: { Authorization: `Bearer ${token}` }
             });

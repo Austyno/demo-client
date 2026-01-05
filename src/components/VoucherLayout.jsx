@@ -1,4 +1,5 @@
 import React from 'react';
+import { API_URL } from '../config';
 
 const VoucherLayout = ({ request }) => {
     if (!request) return null;
@@ -125,7 +126,7 @@ const VoucherLayout = ({ request }) => {
                     <ul style={{ listStyleType: 'disc', paddingLeft: '1.5rem' }}>
                         {request.documents.map((doc, index) => (
                             <li key={index}>
-                                <a href={`http://localhost:3000/${doc.filePath}`} target="_blank" rel="noopener noreferrer" style={{ color: '#2563eb', textDecoration: 'underline' }}>
+                                <a href={`${API_URL}/${doc.filePath}`} target="_blank" rel="noopener noreferrer" style={{ color: '#2563eb', textDecoration: 'underline' }}>
                                     {doc.originalName}
                                 </a>
                             </li>

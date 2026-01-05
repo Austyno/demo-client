@@ -28,6 +28,8 @@ import AssignmentIcon from '@mui/icons-material/Assignment';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VoucherLayout from '../components/VoucherLayout';
 
+import { API_URL } from '../config';
+
 const PendingRequests = () => {
     const [requests, setRequests] = useState([]);
     const [selectedRequest, setSelectedRequest] = useState(null);
@@ -50,7 +52,7 @@ const PendingRequests = () => {
     const fetchRequests = async () => {
         const token = localStorage.getItem('token');
         try {
-            const response = await fetch('http://localhost:3000/api/requests/subordinates?status=PENDING', {
+            const response = await fetch(`${API_URL}/api/requests/subordinates?status=PENDING`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             if (response.ok) {
@@ -76,7 +78,7 @@ const PendingRequests = () => {
 
         const token = localStorage.getItem('token');
         try {
-            const response = await fetch(`http://localhost:3000/api/requests/${id}/process`, {
+            const response = await fetch(`${API_URL}/api/requests/${id}/process`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',

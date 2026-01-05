@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { API_URL } from '../config';
 import {
     Container,
     Card,
@@ -22,7 +23,7 @@ const Login = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const response = await fetch('http://localhost:3000/api/auth/login', {
+            const response = await fetch(`${API_URL}/api/auth/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ username, password }),
@@ -46,6 +47,9 @@ const Login = () => {
         <Container maxWidth="sm" sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
             <Card sx={{ width: '100%', maxWidth: 400, p: 2 }}>
                 <CardContent>
+                    <Typography variant="h4" component="h2" align="center" gutterBottom fontWeight="bold" color="primary">
+                        ISDAO APP
+                    </Typography>
                     <Typography variant="h4" component="h2" align="center" gutterBottom fontWeight="bold" color="primary">
                         Welcome Back
                     </Typography>

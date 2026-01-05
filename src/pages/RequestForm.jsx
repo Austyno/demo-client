@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
+import { API_URL } from '../config';
+
 const RequestForm = () => {
     const navigate = useNavigate();
     const { user } = useAuth();
@@ -55,7 +57,7 @@ const RequestForm = () => {
 
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch('http://localhost:3000/api/requests', {
+            const response = await fetch(`${API_URL}/api/requests`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`

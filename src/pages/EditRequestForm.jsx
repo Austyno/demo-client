@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
+import { API_URL } from '../config';
+
 const EditRequestForm = () => {
     const { id } = useParams();
     const [descriptionEn, setDescriptionEn] = useState('');
@@ -23,7 +25,7 @@ const EditRequestForm = () => {
             // Let's implement a simple getOne in backend or just use the list for now if lazy.
             // Better to fetch specific request. I'll rely on a new endpoint or filter.
             // Let's assume we add GET /api/requests/:id
-            const response = await fetch(`http://localhost:3000/api/requests/${id}`, {
+            const response = await fetch(`${API_URL}/api/requests/${id}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             if (response.ok) {
@@ -62,7 +64,7 @@ const EditRequestForm = () => {
 
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch(`http://localhost:3000/api/requests/${id}`, {
+            const response = await fetch(`${API_URL}/api/requests/${id}`, {
                 method: 'PUT',
                 headers: {
                     'Authorization': `Bearer ${token}`

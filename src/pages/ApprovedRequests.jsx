@@ -23,6 +23,7 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import AttachFileIcon from '@mui/icons-material/AttachFile';
 import AssignmentIcon from '@mui/icons-material/Assignment';
 import VoucherLayout from '../components/VoucherLayout';
+import { API_URL } from '../config';
 
 const ApprovedRequests = () => {
     const [requests, setRequests] = useState([]);
@@ -46,7 +47,7 @@ const ApprovedRequests = () => {
     const fetchRequests = async () => {
         const token = localStorage.getItem('token');
         try {
-            const response = await fetch('http://localhost:3000/api/requests/subordinates?status=APPROVED', {
+            const response = await fetch(`${API_URL}/api/requests/subordinates?status=APPROVED`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             if (response.ok) {

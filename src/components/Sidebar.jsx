@@ -13,6 +13,7 @@ import {
     Badge
 } from '@mui/material';
 import { useAuth } from '../context/AuthContext';
+import { API_URL } from '../config';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import FolderIcon from '@mui/icons-material/Folder';
 import CreditCardIcon from '@mui/icons-material/CreditCard';
@@ -44,7 +45,7 @@ const Sidebar = ({ role }) => {
     const fetchPendingCount = async () => {
         const token = localStorage.getItem('token');
         try {
-            const response = await fetch('http://localhost:3000/api/requests/subordinates?status=PENDING', {
+            const response = await fetch(`${API_URL}/api/requests/subordinates?status=PENDING`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             if (response.ok) {
