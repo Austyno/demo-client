@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
+import { CircularProgress } from '@mui/material';
+import LoadingSpinner from '../components/LoadingSpinner';
+
 import { API_URL } from '../config';
 
 const EditRequestForm = () => {
@@ -11,6 +14,8 @@ const EditRequestForm = () => {
     const [files, setFiles] = useState([]);
     const [error, setError] = useState('');
     const [comments, setComments] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -18,6 +23,7 @@ const EditRequestForm = () => {
     }, [id]);
 
     const fetchRequest = async () => {
+        setIsLoading(true);
         const token = localStorage.getItem('token');
         try {
             // Re-using getMyRequests logic but typically we want a getSingleRequest endpoint
@@ -44,6 +50,8 @@ const EditRequestForm = () => {
         } catch (err) {
             console.error(err);
             setError('Error loading request');
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -61,6 +69,8 @@ const EditRequestForm = () => {
         files.forEach(file => {
             formData.append('documents', file);
         });
+
+        setIsSubmitting(true);
 
         try {
             const token = localStorage.getItem('token');
@@ -81,8 +91,14 @@ const EditRequestForm = () => {
         } catch (err) {
             console.error(err);
             setError('Server error');
+        } finally {
+            setIsSubmitting(false);
         }
     };
+
+    if (isLoading) {
+        return <LoadingSpinner />;
+    }
 
     return (
         <div className="login-container" style={{ maxWidth: '600px' }}>
@@ -140,8 +156,10 @@ const EditRequestForm = () => {
                     )}
                 </div>
                 <div style={{ display: 'flex', gap: '1rem' }}>
-                    <button type="button" onClick={() => navigate('/clerk-dashboard')} style={{ backgroundColor: '#9ca3af' }}>Cancel</button>
-                    <button type="submit">Update Request</button>
+                    <button type="button" onClick={() => navigate('/clerk-dashboard')} style={{ backgroundColor: '#9ca3af' }} disabled={isSubmitting}>Cancel</button>
+                    <button type="submit" disabled={isSubmitting} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        {isSubmitting ? <CircularProgress size={16} color="inherit" /> : 'Update Request'}
+                    </button>
                 </div>
             </form>
         </div>

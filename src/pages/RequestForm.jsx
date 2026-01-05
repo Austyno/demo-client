@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { CircularProgress } from '@mui/material';
 
 import { API_URL } from '../config';
 
@@ -24,6 +25,7 @@ const RequestForm = () => {
     });
     const [files, setFiles] = useState([]);
     const [error, setError] = useState('');
+    const [loading, setLoading] = useState(false);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -47,6 +49,7 @@ const RequestForm = () => {
             return;
         }
 
+        setLoading(true);
         const data = new FormData();
         Object.keys(formData).forEach(key => {
             data.append(key, formData[key]);
@@ -74,6 +77,8 @@ const RequestForm = () => {
         } catch (err) {
             console.error(err);
             setError('Server error');
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -92,23 +97,23 @@ const RequestForm = () => {
                 <h2 style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '0.5rem' }}>Bon de paiement // Payment Voucher</h2>
                 <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '0.5rem', justifyContent: 'center', textAlign: 'left', maxWidth: '400px', margin: '0 auto' }}>
                     <strong>Nom de la banque // Bank name:</strong>
-                    <input type="text" name="bankName" value={formData.bankName} onChange={handleChange} style={inputStyle} />
+                    <input type="text" name="bankName" value={formData.bankName} onChange={handleChange} style={inputStyle} disabled={loading} />
 
                     <strong>Numéro de référence // Reference number:</strong>
-                    <input type="text" name="referenceNumber" value={formData.referenceNumber} onChange={handleChange} style={inputStyle} />
+                    <input type="text" name="referenceNumber" value={formData.referenceNumber} onChange={handleChange} style={inputStyle} disabled={loading} />
 
                     <strong>Numéro de compte // Account number:</strong>
-                    <input type="text" name="accountNumber" value={formData.accountNumber} onChange={handleChange} style={inputStyle} />
+                    <input type="text" name="accountNumber" value={formData.accountNumber} onChange={handleChange} style={inputStyle} disabled={loading} />
 
                     <strong>Date // Date:</strong>
-                    <input type="date" name="requestDate" value={formData.requestDate} onChange={handleChange} style={inputStyle} />
+                    <input type="date" name="requestDate" value={formData.requestDate} onChange={handleChange} style={inputStyle} disabled={loading} />
                 </div>
             </div>
 
             <div style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' }}>
                 <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flex: 1 }}>
                     <strong>BENEFICAIRE // PAYEE:</strong>
-                    <input type="text" name="beneficiary" value={formData.beneficiary} onChange={handleChange} style={{ ...inputStyle, fontWeight: 'bold' }} />
+                    <input type="text" name="beneficiary" value={formData.beneficiary} onChange={handleChange} style={{ ...inputStyle, fontWeight: 'bold' }} disabled={loading} />
                 </div>
             </div>
 
@@ -117,7 +122,7 @@ const RequestForm = () => {
                     <strong>MONTANT EN USD : {formData.amount.toLocaleString()} $ // AMOUNT IN USD : $ {formData.amount.toLocaleString()}</strong>
                 </div>
                 <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                    <input type="text" name="amountInWords" value={formData.amountInWords} onChange={handleChange} style={{ ...inputStyle, width: '100%', fontStyle: 'italic' }} placeholder="Amount in words" />
+                    <input type="text" name="amountInWords" value={formData.amountInWords} onChange={handleChange} style={{ ...inputStyle, width: '100%', fontStyle: 'italic' }} placeholder="Amount in words" disabled={loading} />
                 </div>
             </div>
 
@@ -140,6 +145,7 @@ const RequestForm = () => {
                                 onChange={handleChange}
                                 placeholder="French Description"
                                 style={{ ...inputStyle, width: '100%', minHeight: '60px', marginBottom: '0.5rem' }}
+                                disabled={loading}
                             />
                             <textarea
                                 name="descriptionEn"
@@ -147,10 +153,11 @@ const RequestForm = () => {
                                 onChange={handleChange}
                                 placeholder="English Description"
                                 style={{ ...inputStyle, width: '100%', minHeight: '60px' }}
+                                disabled={loading}
                             />
                         </td>
                         <td style={tdStyle}>
-                            <input type="number" name="amount" value={formData.amount} onChange={handleChange} style={{ ...inputStyle, width: '100%', textAlign: 'right' }} />
+                            <input type="number" name="amount" value={formData.amount} onChange={handleChange} style={{ ...inputStyle, width: '100%', textAlign: 'right' }} disabled={loading} />
                         </td>
                         <td style={tdStyle}>
                             <textarea
@@ -158,6 +165,7 @@ const RequestForm = () => {
                                 value={formData.accountName}
                                 onChange={handleChange}
                                 style={{ ...inputStyle, width: '100%', minHeight: '100px' }}
+                                disabled={loading}
                             />
                         </td>
                         <td style={tdStyle}>
@@ -166,10 +174,11 @@ const RequestForm = () => {
                                 value={formData.fundingSourceCode}
                                 onChange={handleChange}
                                 style={{ ...inputStyle, width: '100%', minHeight: '100px' }}
+                                disabled={loading}
                             />
                         </td>
                         <td style={tdStyle}>
-                            <input type="text" name="quickBooksCode" value={formData.quickBooksCode} onChange={handleChange} style={{ ...inputStyle, width: '100%' }} />
+                            <input type="text" name="quickBooksCode" value={formData.quickBooksCode} onChange={handleChange} style={{ ...inputStyle, width: '100%' }} disabled={loading} />
                         </td>
                     </tr>
                     <tr>
@@ -189,6 +198,7 @@ const RequestForm = () => {
                     multiple
                     onChange={handleFileChange}
                     style={{ border: '1px solid #ccc', padding: '0.5rem', width: '100%' }}
+                    disabled={loading}
                 />
                 <small style={{ color: '#6b7280' }}>Select one or more files.</small>
             </div>
@@ -205,8 +215,10 @@ const RequestForm = () => {
             </div>
 
             <div style={{ marginTop: '2rem', display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
-                <button type="button" onClick={() => navigate('/clerk-dashboard')} style={{ padding: '0.5rem 1rem', backgroundColor: '#9ca3af', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Cancel</button>
-                <button type="button" onClick={handleSubmit} style={{ padding: '0.5rem 1rem', backgroundColor: '#2563eb', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Submit Request</button>
+                <button type="button" onClick={() => navigate('/clerk-dashboard')} style={{ padding: '0.5rem 1rem', backgroundColor: '#9ca3af', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }} disabled={loading}>Cancel</button>
+                <button type="button" onClick={handleSubmit} style={{ padding: '0.5rem 1rem', backgroundColor: '#2563eb', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem' }} disabled={loading}>
+                    {loading ? <CircularProgress size={20} color="inherit" /> : 'Submit Request'}
+                </button>
             </div>
         </div>
     );

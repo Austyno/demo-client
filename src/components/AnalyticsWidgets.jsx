@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     Grid,
     Card,
@@ -11,8 +11,23 @@ import {
 } from '@mui/material';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
+import LoadingSpinner from './LoadingSpinner';
 
 const AnalyticsWidgets = () => {
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        // Simulate data fetching
+        const timer = setTimeout(() => {
+            setLoading(false);
+        }, 1000);
+        return () => clearTimeout(timer);
+    }, []);
+
+    if (loading) {
+        return <LoadingSpinner />;
+    }
+
     return (
         <Grid container spacing={3} sx={{ mb: 4 }}>
             {/* Stats Cards */}

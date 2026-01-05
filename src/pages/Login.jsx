@@ -10,18 +10,22 @@ import {
     TextField,
     Button,
     Box,
-    Alert
+    Alert,
+    CircularProgress
 } from '@mui/material';
 
 const Login = () => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
+    const [loading, setLoading] = useState(false);
     const { login } = useAuth();
     const navigate = useNavigate();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setLoading(true);
+        setError('');
         try {
             const response = await fetch(`${API_URL}/api/auth/login`, {
                 method: 'POST',
@@ -40,6 +44,8 @@ const Login = () => {
             }
         } catch (err) {
             setError('Server error');
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -71,6 +77,7 @@ const Login = () => {
                             autoFocus
                             value={username}
                             onChange={(e) => setUsername(e.target.value)}
+                            disabled={loading}
                         />
                         <TextField
                             margin="normal"
@@ -83,6 +90,7 @@ const Login = () => {
                             autoComplete="current-password"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
+                            disabled={loading}
                         />
                         <Button
                             type="submit"
@@ -90,8 +98,9 @@ const Login = () => {
                             variant="contained"
                             size="large"
                             sx={{ mt: 3, mb: 2, borderRadius: 2 }}
+                            disabled={loading}
                         >
-                            Login
+                            {loading ? <CircularProgress size={24} color="inherit" /> : 'Login'}
                         </Button>
                     </Box>
                 </CardContent>
