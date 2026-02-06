@@ -17,11 +17,15 @@ const AnalyticsWidgets = () => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        // Simulate data fetching
-        const timer = setTimeout(() => {
-            setLoading(false);
-        }, 1000);
-        return () => clearTimeout(timer);
+        const loadData = () => {
+            setLoading(true);
+            setTimeout(() => setLoading(false), 500);
+        };
+
+        loadData();
+        const interval = setInterval(loadData, 60000); // 1 minute
+
+        return () => clearInterval(interval);
     }, []);
 
     if (loading) {

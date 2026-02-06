@@ -77,8 +77,8 @@ const Sidebar = ({ role, mobileOpen, handleDrawerToggle }) => {
     ] : [
         { path: '/clerk-dashboard', label: t('nav.dashboard'), icon: <DashboardIcon /> },
         { path: '/create-request', label: t('nav.new_request'), icon: <AddIcon /> },
-        { path: '#', label: t('nav.approved'), icon: <CheckCircleOutlineIcon /> },
-        { path: '#', label: t('nav.rejected'), icon: <CancelOutlinedIcon /> },
+        { path: '/approved-requests', label: t('nav.approved'), icon: <CheckCircleOutlineIcon /> },
+        { path: '/rejected-requests', label: t('nav.rejected'), icon: <CancelOutlinedIcon /> },
         { path: '#', label: t('common.profile'), icon: <PersonIcon /> },
     ];
 

@@ -44,11 +44,14 @@ function AppContent() {
         <Route path="/edit-request/:id" element={<EditRequestForm />} />
       </Route>
 
+      <Route element={<ProtectedRoute roles={['CLERK', 'MANAGER']} />}>
+        <Route path="/approved-requests" element={<ApprovedRequests />} />
+        <Route path="/rejected-requests" element={<RejectedRequests />} />
+      </Route>
+
       <Route element={<ProtectedRoute roles={['MANAGER']} />}>
         <Route path="/manager-dashboard" element={<ManagerDashboard />} />
         <Route path="/pending-requests" element={<PendingRequests />} />
-        <Route path="/approved-requests" element={<ApprovedRequests />} />
-        <Route path="/rejected-requests" element={<RejectedRequests />} />
       </Route>
 
       <Route path="/" element={<Navigate to="/login" replace />} />

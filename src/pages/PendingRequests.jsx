@@ -56,6 +56,11 @@ const PendingRequests = () => {
 
     useEffect(() => {
         fetchRequests();
+        const interval = setInterval(() => {
+            fetchRequests();
+        }, 60000); // 1 minute
+
+        return () => clearInterval(interval);
     }, []);
 
     const fetchRequests = async () => {

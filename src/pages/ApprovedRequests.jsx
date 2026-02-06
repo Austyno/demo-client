@@ -30,12 +30,14 @@ import AssignmentIcon from '@mui/icons-material/Assignment';
 import VoucherLayout from '../components/VoucherLayout';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { API_URL } from '../config';
+import { useAuth } from '../context/AuthContext';
 
 const ApprovedRequests = () => {
     const [requests, setRequests] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selectedRequest, setSelectedRequest] = useState(null);
     const [openModal, setOpenModal] = useState(false);
+    const { user } = useAuth();
     
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('md'));
@@ -52,13 +54,22 @@ const ApprovedRequests = () => {
 
     useEffect(() => {
         fetchRequests();
+        const interval = setInterval(() => {
+            fetchRequests();
+        }, 60000); // 1 minute
+
+        return () => clearInterval(interval);
     }, []);
 
     const fetchRequests = async () => {
         setLoading(true);
         const token = localStorage.getItem('token');
+        const endpoint = user?.role === 'MANAGER' 
+            ? `${API_URL}/api/requests/subordinates?status=APPROVED`
+            : `${API_URL}/api/requests?status=APPROVED`;
+            
         try {
-            const response = await fetch(`${API_URL}/api/requests/subordinates?status=APPROVED`, {
+            const response = await fetch(endpoint, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             if (response.ok) {
@@ -73,7 +84,7 @@ const ApprovedRequests = () => {
     };
 
     return (
-        <DashboardLayout role="manager" title="Approved Requests">
+        <DashboardLayout role={user?.role?.toLowerCase()} title="Approved Requests">
             {loading ? (
                 <LoadingSpinner />
             ) : requests.length === 0 ? (

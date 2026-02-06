@@ -146,6 +146,33 @@ const VoucherLayout = ({ request }) => {
                 </div>
             </div>
 
+            {/* History / Comments */}
+            {request.history && request.history.length > 0 && (
+                <div style={{ marginTop: '3rem', borderTop: '2px solid #000', paddingTop: '1rem' }}>
+                    <h3 style={{ fontSize: '16px', fontWeight: 'bold', marginBottom: '1rem', textTransform: 'uppercase' }}>Historique & Commentaires // History & Comments</h3>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
+                        <thead>
+                            <tr style={{ backgroundColor: '#f3f4f6' }}>
+                                <th style={{ ...thStyle, width: '20%' }}>Date</th>
+                                <th style={{ ...thStyle, width: '15%' }}>Action</th>
+                                <th style={{ ...thStyle, width: '20%' }}>Par // By</th>
+                                <th style={{ ...thStyle }}>Commentaires // Comments</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {request.history.map((item, index) => (
+                                <tr key={index}>
+                                    <td style={tdStyle}>{new Date(item.timestamp).toLocaleString()}</td>
+                                    <td style={{ ...tdStyle, fontWeight: 'bold' }}>{item.action}</td>
+                                    <td style={tdStyle}>{item.actor?.username || 'System'}</td>
+                                    <td style={tdStyle}>{item.comment || '-'}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            )}
+
             {/* Approval Signatures Placeholder */}
             <div style={{ marginTop: '3rem', borderTop: '1px solid #ccc', paddingTop: '1rem' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: '2rem' }}>

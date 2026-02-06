@@ -30,12 +30,14 @@ import AssignmentIcon from '@mui/icons-material/Assignment';
 import VoucherLayout from '../components/VoucherLayout';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { API_URL } from '../config';
+import { useAuth } from '../context/AuthContext';
 
 const RejectedRequests = () => {
     const [requests, setRequests] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selectedRequest, setSelectedRequest] = useState(null);
     const [openModal, setOpenModal] = useState(false);
+    const { user } = useAuth();
     
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('md'));
@@ -52,13 +54,22 @@ const RejectedRequests = () => {
 
     useEffect(() => {
         fetchRequests();
+        const interval = setInterval(() => {
+            fetchRequests();
+        }, 60000); // 1 minute
+
+        return () => clearInterval(interval);
     }, []);
 
     const fetchRequests = async () => {
         setLoading(true);
         const token = localStorage.getItem('token');
+        const endpoint = user?.role === 'MANAGER' 
+            ? `${API_URL}/api/requests/subordinates?status=REJECTED`
+            : `${API_URL}/api/requests?status=REJECTED`;
+            
         try {
-            const response = await fetch(`${API_URL}/api/requests/subordinates?status=REJECTED`, {
+            const response = await fetch(endpoint, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             if (response.ok) {
@@ -73,7 +84,7 @@ const RejectedRequests = () => {
     };
 
     return (
-        <DashboardLayout role="manager" title="Rejected Requests">
+        <DashboardLayout role={user?.role?.toLowerCase()} title="Rejected Requests">
             {loading ? (
                 <LoadingSpinner />
             ) : requests.length === 0 ? (
