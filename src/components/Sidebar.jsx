@@ -27,12 +27,14 @@ import PendingActionsIcon from '@mui/icons-material/PendingActions';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
 import MessageIcon from '@mui/icons-material/Message';
+import { useTranslation } from 'react-i18next';
 
 const drawerWidth = 240;
 
 const Sidebar = ({ role }) => {
     const location = useLocation();
     const [pendingCount, setPendingCount] = useState(0);
+    const { t } = useTranslation();
 
     useEffect(() => {
         if (role === 'manager') {
@@ -58,26 +60,26 @@ const Sidebar = ({ role }) => {
     };
 
     const menuItems = role === 'manager' ? [
-        { path: '/manager-dashboard', label: 'Dashboard', icon: <DashboardIcon /> },
+        { path: '/manager-dashboard', label: t('nav.dashboard'), icon: <DashboardIcon /> },
         {
             path: '/pending-requests',
-            label: 'Pending Requests',
+            label: t('nav.pending'),
             icon: (
                 <Badge badgeContent={pendingCount} color="error" sx={{ '& .MuiBadge-badge': { right: -3, top: 3 } }}>
                     <PendingActionsIcon />
                 </Badge>
             )
         },
-        { path: '/approved-requests', label: 'Approved Requests', icon: <CheckCircleOutlineIcon /> },
-        { path: '/rejected-requests', label: 'Rejected Requests', icon: <CancelOutlinedIcon /> },
-        { path: '#', label: 'Messages', icon: <MessageIcon /> },
-        { path: '#', label: 'Activity', icon: <ActivityIcon /> },
+        { path: '/approved-requests', label: t('nav.approved'), icon: <CheckCircleOutlineIcon /> },
+        { path: '/rejected-requests', label: t('nav.rejected'), icon: <CancelOutlinedIcon /> },
+        { path: '#', label: t('common.messages'), icon: <MessageIcon /> },
+        { path: '#', label: t('common.activity'), icon: <ActivityIcon /> },
     ] : [
-        { path: '/clerk-dashboard', label: 'Dashboard', icon: <DashboardIcon /> },
-        { path: '/create-request', label: 'Create Request', icon: <AddIcon /> },
-        { path: '#', label: 'Approved Requests', icon: <CheckCircleOutlineIcon /> },
-        { path: '#', label: 'Rejected Requests', icon: <CancelOutlinedIcon /> },
-        { path: '#', label: 'Profile', icon: <PersonIcon /> },
+        { path: '/clerk-dashboard', label: t('nav.dashboard'), icon: <DashboardIcon /> },
+        { path: '/create-request', label: t('nav.new_request'), icon: <AddIcon /> },
+        { path: '#', label: t('nav.approved'), icon: <CheckCircleOutlineIcon /> },
+        { path: '#', label: t('nav.rejected'), icon: <CancelOutlinedIcon /> },
+        { path: '#', label: t('common.profile'), icon: <PersonIcon /> },
     ];
 
     return (

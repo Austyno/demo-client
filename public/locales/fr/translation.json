@@ -1,0 +1,38 @@
+{
+  "common": {
+    "login": "Connexion",
+    "logout": "Déconnexion",
+    "username": "Nom d'utilisateur",
+    "password": "Mot de passe",
+    "submit": "Soumettre",
+    "cancel": "Annuler",
+    "loading": "Chargement...",
+    "actions": "Actions",
+    "messages": "Messages",
+    "activity": "Activité",
+    "profile": "Profil"
+  },
+  "nav": {
+    "dashboard": "Tableau de Bord",
+    "pending": "Demandes en attente",
+    "approved": "Demandes approuvées",
+    "rejected": "Demandes rejetées",
+    "new_request": "Nouvelle demande"
+  },
+  "auth": {
+    "welcome": "Bon retour",
+    "signin_to_account": "Connectez-vous à votre compte"
+  },
+  "requests": {
+    "title": "Demandes",
+    "amount": "Montant",
+    "description": "Description",
+    "status": "Statut",
+    "created_at": "Créé le",
+    "category": "Catégorie",
+    "edit": "Modifier",
+    "delete": "Supprimer",
+    "approve": "Approuver",
+    "reject": "Rejeter"
+  }
+}

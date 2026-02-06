@@ -13,6 +13,7 @@ import {
     Alert,
     CircularProgress
 } from '@mui/material';
+import { useTranslation } from 'react-i18next';
 
 const Login = () => {
     const [username, setUsername] = useState('');
@@ -21,6 +22,7 @@ const Login = () => {
     const [loading, setLoading] = useState(false);
     const { login } = useAuth();
     const navigate = useNavigate();
+    const { t } = useTranslation();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -57,10 +59,10 @@ const Login = () => {
                         ISDAO APP
                     </Typography>
                     <Typography variant="h4" component="h2" align="center" gutterBottom fontWeight="bold" color="primary">
-                        Welcome Back
+                        {t('auth.welcome')}
                     </Typography>
                     <Typography variant="body2" align="center" color="text.secondary" sx={{ mb: 4 }}>
-                        Sign in to access your dashboard
+                        {t('auth.signin_to_account')}
                     </Typography>
 
                     {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
@@ -71,7 +73,7 @@ const Login = () => {
                             required
                             fullWidth
                             id="username"
-                            label="Username"
+                            label={t('common.username')}
                             name="username"
                             autoComplete="username"
                             autoFocus
@@ -84,7 +86,7 @@ const Login = () => {
                             required
                             fullWidth
                             name="password"
-                            label="Password"
+                            label={t('common.password')}
                             type="password"
                             id="password"
                             autoComplete="current-password"
@@ -100,7 +102,7 @@ const Login = () => {
                             sx={{ mt: 3, mb: 2, borderRadius: 2 }}
                             disabled={loading}
                         >
-                            {loading ? <CircularProgress size={24} color="inherit" /> : 'Login'}
+                            {loading ? <CircularProgress size={24} color="inherit" /> : t('common.login')}
                         </Button>
                     </Box>
                 </CardContent>

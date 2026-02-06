@@ -10,12 +10,15 @@ import {
     Button,
     Box
 } from '@mui/material';
-import NotificationsIcon from '@mui/icons-material/Notifications';
 import LogoutIcon from '@mui/icons-material/Logout';
+import NotificationsMenu from './NotificationsMenu';
+import LanguageSwitcher from './LanguageSwitcher';
+import { useTranslation } from 'react-i18next';
 
 const TopBar = ({ title }) => {
     const { logout } = useAuth();
     const navigate = useNavigate();
+    const { t } = useTranslation();
 
     const handleLogout = () => {
         logout();
@@ -35,11 +38,8 @@ const TopBar = ({ title }) => {
                 </Typography>
 
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                    <IconButton size="large" color="inherit">
-                        <Badge badgeContent={4} color="error" variant="dot">
-                            <NotificationsIcon sx={{ color: 'text.secondary' }} />
-                        </Badge>
-                    </IconButton>
+                    <LanguageSwitcher />
+                    <NotificationsMenu />
 
                     <Button
                         variant="outlined"
@@ -52,7 +52,7 @@ const TopBar = ({ title }) => {
                             '&:hover': { borderWidth: '1px' }
                         }}
                     >
-                        Logout
+                        {t('common.logout')}
                     </Button>
                 </Box>
             </Toolbar>

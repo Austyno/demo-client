@@ -1,0 +1,38 @@
+{
+  "common": {
+    "login": "Login",
+    "logout": "Logout",
+    "username": "Username",
+    "password": "Password",
+    "submit": "Submit",
+    "cancel": "Cancel",
+    "loading": "Loading...",
+    "actions": "Actions",
+    "messages": "Messages",
+    "activity": "Activity",
+    "profile": "Profile"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "pending": "Pending Requests",
+    "approved": "Approved Requests",
+    "rejected": "Rejected Requests",
+    "new_request": "New Request"
+  },
+  "auth": {
+    "welcome": "Welcome back",
+    "signin_to_account": "Sign in to your account"
+  },
+  "requests": {
+    "title": "Requests",
+    "amount": "Amount",
+    "description": "Description",
+    "status": "Status",
+    "created_at": "Created At",
+    "category": "Category",
+    "edit": "Edit",
+    "delete": "Delete",
+    "approve": "Approve",
+    "reject": "Reject"
+  }
+}

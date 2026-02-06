@@ -21,12 +21,14 @@ import SendIcon from '@mui/icons-material/Send';
 import EditIcon from '@mui/icons-material/Edit';
 import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
 import LoadingSpinner from '../components/LoadingSpinner';
+import { useTranslation } from 'react-i18next';
 
 import { API_URL } from '../config';
 
 const ClerkDashboard = () => {
     const [requests, setRequests] = useState([]);
     const [loading, setLoading] = useState(true);
+    const { t } = useTranslation();
 
     useEffect(() => {
         fetchRequests();
@@ -78,7 +80,7 @@ const ClerkDashboard = () => {
     };
 
     return (
-        <DashboardLayout role="clerk" title="Dashboard">
+        <DashboardLayout role="clerk" title={t('nav.dashboard')}>
 
             <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 3 }}>
                 <Link to="/create-request" style={{ textDecoration: 'none' }}>
@@ -88,7 +90,7 @@ const ClerkDashboard = () => {
                         startIcon={<AddIcon />}
                         sx={{ borderRadius: 3, px: 3 }}
                     >
-                        New Payment Request
+                        {t('nav.new_request')}
                     </Button>
                 </Link>
             </Box>
@@ -102,10 +104,10 @@ const ClerkDashboard = () => {
                             <TableHead>
                                 <TableRow>
                                     <TableCell>ID</TableCell>
-                                    <TableCell>Description (En)</TableCell>
-                                    <TableCell>Status</TableCell>
-                                    <TableCell>Date</TableCell>
-                                    <TableCell align="right">Actions</TableCell>
+                                    <TableCell>{t('requests.description')}</TableCell>
+                                    <TableCell>{t('requests.status')}</TableCell>
+                                    <TableCell>{t('requests.created_at')}</TableCell>
+                                    <TableCell align="right">{t('common.actions')}</TableCell>
                                 </TableRow>
                             </TableHead>
                             <TableBody>
@@ -142,7 +144,7 @@ const ClerkDashboard = () => {
                                                             onClick={() => handleSubmit(req.id)}
                                                             startIcon={<SendIcon />}
                                                         >
-                                                            Submit
+                                                            {t('common.submit')}
                                                         </Button>
                                                     </Tooltip>
                                                 )}
@@ -155,7 +157,7 @@ const ClerkDashboard = () => {
                                                                 size="small"
                                                                 startIcon={<EditIcon />}
                                                             >
-                                                                Edit
+                                                                {t('requests.edit')}
                                                             </Button>
                                                         </Tooltip>
                                                     </Link>
