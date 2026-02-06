@@ -31,7 +31,7 @@ import { useTranslation } from 'react-i18next';
 
 const drawerWidth = 240;
 
-const Sidebar = ({ role }) => {
+const Sidebar = ({ role, mobileOpen, handleDrawerToggle }) => {
     const location = useLocation();
     const [pendingCount, setPendingCount] = useState(0);
     const { t } = useTranslation();
@@ -82,19 +82,8 @@ const Sidebar = ({ role }) => {
         { path: '#', label: t('common.profile'), icon: <PersonIcon /> },
     ];
 
-    return (
-        <Drawer
-            variant="permanent"
-            sx={{
-                width: drawerWidth,
-                flexShrink: 0,
-                [`& .MuiDrawer-paper`]: {
-                    width: drawerWidth,
-                    boxSizing: 'border-box',
-                    border: 'none'
-                },
-            }}
-        >
+    const drawerContent = (
+        <>
             <Box sx={{ p: 3, textAlign: 'center', mb: 2 }}>
                 <Typography variant="h6" sx={{ color: 'white', mb: 3 }}>
                     Finance App
@@ -128,6 +117,7 @@ const Sidebar = ({ role }) => {
                             <ListItemButton
                                 component={NavLink}
                                 to={item.path}
+                                onClick={mobileOpen ? handleDrawerToggle : undefined}
                                 sx={{
                                     borderRadius: '12px',
                                     backgroundColor: isActive ? 'white' : 'transparent',
@@ -155,7 +145,40 @@ const Sidebar = ({ role }) => {
                     );
                 })}
             </List>
-        </Drawer>
+        </>
+    );
+
+    return (
+        <Box
+            component="nav"
+            sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}
+            aria-label="mailbox folders"
+        >
+            <Drawer
+                variant="temporary"
+                open={mobileOpen}
+                onClose={handleDrawerToggle}
+                ModalProps={{
+                    keepMounted: true, // Better open performance on mobile.
+                }}
+                sx={{
+                    display: { xs: 'block', sm: 'none' },
+                    '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
+                }}
+            >
+                {drawerContent}
+            </Drawer>
+            <Drawer
+                variant="permanent"
+                sx={{
+                    display: { xs: 'none', sm: 'block' },
+                    '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth, border: 'none' },
+                }}
+                open
+            >
+                {drawerContent}
+            </Drawer>
+        </Box>
     );
 };
 

@@ -14,7 +14,11 @@ import {
     Box,
     Chip,
     Stack,
-    Tooltip
+    Tooltip,
+    Card,
+    CardContent,
+    useTheme,
+    useMediaQuery
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import SendIcon from '@mui/icons-material/Send';
@@ -29,6 +33,8 @@ const ClerkDashboard = () => {
     const [requests, setRequests] = useState([]);
     const [loading, setLoading] = useState(true);
     const { t } = useTranslation();
+    const theme = useTheme();
+    const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
     useEffect(() => {
         fetchRequests();
@@ -79,15 +85,48 @@ const ClerkDashboard = () => {
         }
     };
 
+    const ActionButtons = ({ req }) => (
+        <Stack direction="row" spacing={1} justifyContent={isMobile ? "center" : "flex-end"}>
+            {(req.status === 'DRAFT' || req.status === 'MINUTED') && (
+                <Tooltip title="Submit Request">
+                    <Button
+                        variant="contained"
+                        color="primary"
+                        size="small"
+                        onClick={() => handleSubmit(req.id)}
+                        startIcon={<SendIcon />}
+                    >
+                        {t('common.submit')}
+                    </Button>
+                </Tooltip>
+            )}
+            {req.status === 'MINUTED' && (
+                <Link to={`/edit-request/${req.id}`} style={{ textDecoration: 'none' }}>
+                    <Tooltip title="Edit Request">
+                        <Button
+                            variant="contained"
+                            color="warning"
+                            size="small"
+                            startIcon={<EditIcon />}
+                        >
+                            {t('requests.edit')}
+                        </Button>
+                    </Tooltip>
+                </Link>
+            )}
+        </Stack>
+    );
+
     return (
         <DashboardLayout role="clerk" title={t('nav.dashboard')}>
 
-            <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 3 }}>
-                <Link to="/create-request" style={{ textDecoration: 'none' }}>
+            <Box sx={{ display: 'flex', justifyContent: isMobile ? 'center' : 'flex-end', mb: 3 }}>
+                <Link to="/create-request" style={{ textDecoration: 'none', width: isMobile ? '100%' : 'auto' }}>
                     <Button
                         variant="contained"
                         size="large"
                         startIcon={<AddIcon />}
+                        fullWidth={isMobile}
                         sx={{ borderRadius: 3, px: 3 }}
                     >
                         {t('nav.new_request')}
@@ -97,8 +136,44 @@ const ClerkDashboard = () => {
 
             {loading ? (
                 <LoadingSpinner />
+            ) : requests.length === 0 ? (
+                <Paper sx={{ p: 6, textAlign: 'center', boxShadow: 'var(--shadow-sm)', borderRadius: 2 }}>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, color: 'text.secondary' }}>
+                        <ReceiptLongIcon sx={{ fontSize: 48, color: 'grey.300' }} />
+                        <Typography>No requests yet. Create your first payment request!</Typography>
+                    </Box>
+                </Paper>
+            ) : isMobile ? (
+                <Stack spacing={2}>
+                    {requests.map(req => (
+                        <Card key={req.id} sx={{ borderRadius: 3, boxShadow: 'var(--shadow-sm)' }}>
+                            <CardContent>
+                                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+                                    <Typography variant="subtitle2" color="primary" fontWeight="bold">
+                                        #{req.id}
+                                    </Typography>
+                                    <Chip
+                                        label={req.status}
+                                        color={getStatusColor(req.status)}
+                                        size="small"
+                                        sx={{ fontWeight: 600 }}
+                                    />
+                                </Box>
+                                <Typography variant="body1" sx={{ mb: 2, fontWeight: 500 }}>
+                                    {req.descriptionEn}
+                                </Typography>
+                                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                                    <Typography variant="caption" color="text.secondary">
+                                        {new Date(req.createdAt).toLocaleDateString()}
+                                    </Typography>
+                                </Box>
+                                <ActionButtons req={req} />
+                            </CardContent>
+                        </Card>
+                    ))}
+                </Stack>
             ) : (
-                <Paper sx={{ width: '100%', overflow: 'hidden', border: 'none', boxShadow: 'var(--shadow-sm)' }}>
+                <Paper sx={{ width: '100%', overflow: 'hidden', border: 'none', boxShadow: 'var(--shadow-sm)', borderRadius: 2 }}>
                     <TableContainer>
                         <Table sx={{ minWidth: 650 }}>
                             <TableHead>
@@ -124,7 +199,6 @@ const ClerkDashboard = () => {
                                                 label={req.status}
                                                 color={getStatusColor(req.status)}
                                                 size="small"
-                                                variant="soft" // Note: 'soft' might require extra theme config, falling back to filled/outlined if not
                                                 sx={{ fontWeight: 600 }}
                                             />
                                         </TableCell>
@@ -134,48 +208,10 @@ const ClerkDashboard = () => {
                                             </Typography>
                                         </TableCell>
                                         <TableCell align="right">
-                                            <Stack direction="row" spacing={1} justifyContent="flex-end">
-                                                {(req.status === 'DRAFT' || req.status === 'MINUTED') && (
-                                                    <Tooltip title="Submit Request">
-                                                        <Button
-                                                            variant="contained"
-                                                            color="primary"
-                                                            size="small"
-                                                            onClick={() => handleSubmit(req.id)}
-                                                            startIcon={<SendIcon />}
-                                                        >
-                                                            {t('common.submit')}
-                                                        </Button>
-                                                    </Tooltip>
-                                                )}
-                                                {req.status === 'MINUTED' && (
-                                                    <Link to={`/edit-request/${req.id}`} style={{ textDecoration: 'none' }}>
-                                                        <Tooltip title="Edit Request">
-                                                            <Button
-                                                                variant="contained"
-                                                                color="warning"
-                                                                size="small"
-                                                                startIcon={<EditIcon />}
-                                                            >
-                                                                {t('requests.edit')}
-                                                            </Button>
-                                                        </Tooltip>
-                                                    </Link>
-                                                )}
-                                            </Stack>
+                                            <ActionButtons req={req} />
                                         </TableCell>
                                     </TableRow>
                                 ))}
-                                {requests.length === 0 && (
-                                    <TableRow>
-                                        <TableCell colSpan={5} align="center" sx={{ py: 6 }}>
-                                            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, color: 'text.secondary' }}>
-                                                <ReceiptLongIcon sx={{ fontSize: 48, color: 'grey.300' }} />
-                                                <Typography>No requests yet. Create your first payment request!</Typography>
-                                            </Box>
-                                        </TableCell>
-                                    </TableRow>
-                                )}
                             </TableBody>
                         </Table>
                     </TableContainer>

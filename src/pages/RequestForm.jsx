@@ -1,7 +1,19 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { CircularProgress } from '@mui/material';
+import { 
+    CircularProgress, 
+    Box, 
+    Typography, 
+    TextField, 
+    Button, 
+    Paper, 
+    Grid, 
+    Divider, 
+    useTheme, 
+    useMediaQuery,
+    Stack
+} from '@mui/material';
 import DashboardLayout from '../components/DashboardLayout';
 import { useTranslation } from 'react-i18next';
 
@@ -11,11 +23,14 @@ const RequestForm = () => {
     const navigate = useNavigate();
     const { user } = useAuth();
     const { t } = useTranslation();
+    const theme = useTheme();
+    const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+
     const [formData, setFormData] = useState({
         beneficiary: '',
         bankName: '',
         accountNumber: '',
-        referenceNumber: 'Online-1546', // Default or auto-gen?
+        referenceNumber: 'Online-1546', 
         requestDate: new Date().toISOString().split('T')[0],
         amount: 101500.00,
         currency: 'USD',
@@ -87,171 +102,109 @@ const RequestForm = () => {
 
     return (
         <DashboardLayout role="clerk" title={t('nav.new_request')}>
-            <div style={{ maxWidth: '900px', margin: '0 auto', padding: '2rem', backgroundColor: 'white', borderRadius: '8px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)', fontSize: '14px', fontFamily: 'Arial, sans-serif' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2rem' }}>
-                    <div>
-                        <h1 style={{ fontSize: '24px', fontWeight: 'bold', letterSpacing: '2px', color: '#1f2937' }}>ISDAO</h1>
-                    </div>
-                    <div style={{ textAlign: 'right' }}>
-                        <p style={{ margin: 0 }}>PV AVIENTI</p>
-                    </div>
-                </div>
+            <Paper sx={{ 
+                maxWidth: '900px', 
+                margin: '0 auto', 
+                p: { xs: 2, sm: 4 }, 
+                boxShadow: 'var(--shadow-md)',
+                borderRadius: 2
+            }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
+                    <Typography variant="h4" fontWeight="bold" sx={{ letterSpacing: 2 }}>ISDAO</Typography>
+                    <Typography variant="subtitle2" color="text.secondary">PV AVIENTI</Typography>
+                </Box>
 
-                <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-                    <h2 style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '0.5rem' }}>Bon de paiement // Payment Voucher</h2>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '0.5rem', justifyContent: 'center', textAlign: 'left', maxWidth: '400px', margin: '0 auto' }}>
-                        <strong>Nom de la banque // Bank name:</strong>
-                        <input type="text" name="bankName" value={formData.bankName} onChange={handleChange} style={inputStyle} disabled={loading} />
+                <Box sx={{ textAlign: 'center', mb: 4 }}>
+                    <Typography variant="h6" fontWeight="bold">Bon de paiement // Payment Voucher</Typography>
+                </Box>
 
-                        <strong>Numéro de référence // Reference number:</strong>
-                        <input type="text" name="referenceNumber" value={formData.referenceNumber} onChange={handleChange} style={inputStyle} disabled={loading} />
+                <Grid container spacing={2} sx={{ mb: 4 }}>
+                    <Grid item xs={12} md={6}>
+                        <TextField fullWidth size="small" label="Bank name" name="bankName" value={formData.bankName} onChange={handleChange} disabled={loading} variant="standard" />
+                    </Grid>
+                    <Grid item xs={12} md={6}>
+                        <TextField fullWidth size="small" label="Reference number" name="referenceNumber" value={formData.referenceNumber} onChange={handleChange} disabled={loading} variant="standard" />
+                    </Grid>
+                    <Grid item xs={12} md={6}>
+                        <TextField fullWidth size="small" label="Account number" name="accountNumber" value={formData.accountNumber} onChange={handleChange} disabled={loading} variant="standard" />
+                    </Grid>
+                    <Grid item xs={12} md={6}>
+                        <TextField fullWidth size="small" label="Date" type="date" name="requestDate" value={formData.requestDate} onChange={handleChange} disabled={loading} variant="standard" InputLabelProps={{ shrink: true }} />
+                    </Grid>
+                </Grid>
 
-                        <strong>Numéro de compte // Account number:</strong>
-                        <input type="text" name="accountNumber" value={formData.accountNumber} onChange={handleChange} style={inputStyle} disabled={loading} />
+                <Box sx={{ mb: 4 }}>
+                    <TextField fullWidth label="PAYEE (BENEFICAIRE)" name="beneficiary" value={formData.beneficiary} onChange={handleChange} disabled={loading} variant="standard" sx={{ fontWeight: 'bold' }} />
+                </Box>
 
-                        <strong>Date // Date:</strong>
-                        <input type="date" name="requestDate" value={formData.requestDate} onChange={handleChange} style={inputStyle} disabled={loading} />
-                    </div>
-                </div>
+                <Box sx={{ p: 2, border: '1px solid #e0e0e0', borderRadius: 1, mb: 4, bgcolor: '#f9fafb' }}>
+                    <Typography variant="subtitle2" fontWeight="bold" gutterBottom>AMOUNT IN USD: $ {formData.amount.toLocaleString()}</Typography>
+                    <TextField fullWidth multiline rows={2} placeholder="Amount in words" name="amountInWords" value={formData.amountInWords} onChange={handleChange} disabled={loading} variant="standard" />
+                </Box>
 
-                <div style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' }}>
-                    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flex: 1 }}>
-                        <strong>BENEFICAIRE // PAYEE:</strong>
-                        <input type="text" name="beneficiary" value={formData.beneficiary} onChange={handleChange} style={{ ...inputStyle, fontWeight: 'bold' }} disabled={loading} />
-                    </div>
-                </div>
+                <Box sx={{ mb: 4 }}>
+                    <Typography variant="subtitle2" fontWeight="bold" sx={{ mb: 2, bgcolor: '#f3f4f6', p: 1, textAlign: 'center' }}>
+                        Détail du paiement // Particulars of payment
+                    </Typography>
+                    <Stack spacing={3}>
+                        <Box>
+                            <Typography variant="caption" color="text.secondary">Description (FR & EN)</Typography>
+                            <Stack spacing={1} sx={{ mt: 1 }}>
+                                <TextField fullWidth multiline rows={2} placeholder="French Description" name="descriptionFr" value={formData.descriptionFr} onChange={handleChange} disabled={loading} size="small" />
+                                <TextField fullWidth multiline rows={2} placeholder="English Description" name="descriptionEn" value={formData.descriptionEn} onChange={handleChange} disabled={loading} size="small" />
+                            </Stack>
+                        </Box>
+                        
+                        <Grid container spacing={2}>
+                            <Grid item xs={12} md={6}>
+                                <TextField fullWidth label="Amount" type="number" name="amount" value={formData.amount} onChange={handleChange} disabled={loading} size="small" />
+                            </Grid>
+                            <Grid item xs={12} md={6}>
+                                <TextField fullWidth label="QuickBooks Code" name="quickBooksCode" value={formData.quickBooksCode} onChange={handleChange} disabled={loading} size="small" />
+                            </Grid>
+                            <Grid item xs={12}>
+                                <TextField fullWidth multiline rows={2} label="Account name" name="accountName" value={formData.accountName} onChange={handleChange} disabled={loading} size="small" />
+                            </Grid>
+                            <Grid item xs={12}>
+                                <TextField fullWidth multiline rows={2} label="Funding source code" name="fundingSourceCode" value={formData.fundingSourceCode} onChange={handleChange} disabled={loading} size="small" />
+                            </Grid>
+                        </Grid>
+                    </Stack>
+                </Box>
 
-                <div style={{ marginBottom: '1rem', border: '1px solid #000', padding: '0.5rem' }}>
-                    <div style={{ display: 'flex', gap: '1rem', marginBottom: '0.5rem' }}>
-                        <strong>MONTANT EN USD : {formData.amount.toLocaleString()} $ // AMOUNT IN USD : $ {formData.amount.toLocaleString()}</strong>
-                    </div>
-                    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                        <input type="text" name="amountInWords" value={formData.amountInWords} onChange={handleChange} style={{ ...inputStyle, width: '100%', fontStyle: 'italic' }} placeholder="Amount in words" disabled={loading} />
-                    </div>
-                </div>
-
-                <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '2rem', border: '1px solid black' }}>
-                    <thead>
-                        <tr style={{ backgroundColor: '#f3f4f6' }}>
-                            <th style={thStyle}>Détail du paiement // Particulars of payment</th>
-                            <th style={thStyle}>Montant (Devise) // Amount ({formData.currency})</th>
-                            <th style={thStyle}>Nom du compte // Account name</th>
-                            <th style={thStyle}>Code de la source de financement // Funding source code</th>
-                            <th style={thStyle}>Code QuickBooks</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td style={tdStyle}>
-                                <textarea
-                                    name="descriptionFr"
-                                    value={formData.descriptionFr}
-                                    onChange={handleChange}
-                                    placeholder="French Description"
-                                    style={{ ...inputStyle, width: '100%', minHeight: '60px', marginBottom: '0.5rem' }}
-                                    disabled={loading}
-                                />
-                                <textarea
-                                    name="descriptionEn"
-                                    value={formData.descriptionEn}
-                                    onChange={handleChange}
-                                    placeholder="English Description"
-                                    style={{ ...inputStyle, width: '100%', minHeight: '60px' }}
-                                    disabled={loading}
-                                />
-                            </td>
-                            <td style={tdStyle}>
-                                <input type="number" name="amount" value={formData.amount} onChange={handleChange} style={{ ...inputStyle, width: '100%', textAlign: 'right' }} disabled={loading} />
-                            </td>
-                            <td style={tdStyle}>
-                                <textarea
-                                    name="accountName"
-                                    value={formData.accountName}
-                                    onChange={handleChange}
-                                    style={{ ...inputStyle, width: '100%', minHeight: '100px' }}
-                                    disabled={loading}
-                                />
-                            </td>
-                            <td style={tdStyle}>
-                                <textarea
-                                    name="fundingSourceCode"
-                                    value={formData.fundingSourceCode}
-                                    onChange={handleChange}
-                                    style={{ ...inputStyle, width: '100%', minHeight: '100px' }}
-                                    disabled={loading}
-                                />
-                            </td>
-                            <td style={tdStyle}>
-                                <input type="text" name="quickBooksCode" value={formData.quickBooksCode} onChange={handleChange} style={{ ...inputStyle, width: '100%' }} disabled={loading} />
-                            </td>
-                        </tr>
-                        <tr>
-                            <td style={{ ...tdStyle, fontWeight: 'bold' }}>TOTAL // TOTAL</td>
-                            <td style={{ ...tdStyle, fontWeight: 'bold', textAlign: 'right', textDecoration: 'underline' }}>{formData.amount.toLocaleString()}</td>
-                            <td style={tdStyle}></td>
-                            <td style={tdStyle}></td>
-                            <td style={tdStyle}></td>
-                        </tr>
-                    </tbody>
-                </table>
-
-                <div style={{ marginBottom: '2rem' }}>
-                    <label style={{ fontWeight: 'bold', display: 'block', marginBottom: '0.5rem' }}>Supporting Documents:</label>
+                <Box sx={{ mb: 4 }}>
+                    <Typography variant="subtitle2" fontWeight="bold" gutterBottom>Supporting Documents:</Typography>
                     <input
                         type="file"
                         multiple
                         onChange={handleFileChange}
-                        style={{ border: '1px solid #ccc', padding: '0.5rem', width: '100%' }}
+                        style={{ border: '1px solid #ccc', padding: '0.5rem', width: '100%', borderRadius: '4px' }}
                         disabled={loading}
                     />
-                    <small style={{ color: '#6b7280' }}>Select one or more files.</small>
-                </div>
+                </Box>
 
-                {error && <p style={{ color: 'red', marginBottom: '1rem' }}>{error}</p>}
+                {error && <Typography color="error" sx={{ mb: 2 }}>{error}</Typography>}
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', marginTop: '3rem' }}>
-                    <div>
-                        <p><strong>Préparé par // Prepared By:</strong> <span style={{ marginLeft: '1rem' }}>{user?.username || 'Unknown'} ({user?.role || 'User'})</span></p>
-                    </div>
-                    <div style={{ textAlign: 'right' }}>
-                        <p><strong>Date:</strong> {new Date().toLocaleDateString()}</p>
-                    </div>
-                </div>
+                <Divider sx={{ mb: 4 }} />
 
-                <div style={{ marginTop: '2rem', display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
-                    <button type="button" onClick={() => navigate('/clerk-dashboard')} style={{ padding: '0.5rem 1rem', backgroundColor: '#9ca3af', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }} disabled={loading}>Cancel</button>
-                    <button type="button" onClick={handleSubmit} style={{ padding: '0.5rem 1rem', backgroundColor: '#2563eb', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem' }} disabled={loading}>
-                        {loading ? <CircularProgress size={20} color="inherit" /> : 'Submit Request'}
-                    </button>
-                </div>
-            </div>
+                <Grid container spacing={2} sx={{ mb: 4 }}>
+                    <Grid item xs={12} sm={6}>
+                        <Typography variant="body2"><strong>Prepared By:</strong> {user?.username} ({user?.role})</Typography>
+                    </Grid>
+                    <Grid item xs={12} sm={6} sx={{ textAlign: { sm: 'right' } }}>
+                        <Typography variant="body2"><strong>Date:</strong> {new Date().toLocaleDateString()}</Typography>
+                    </Grid>
+                </Grid>
+
+                <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end', flexDirection: { xs: 'column', sm: 'row' } }}>
+                    <Button variant="outlined" color="inherit" onClick={() => navigate('/clerk-dashboard')} disabled={loading} fullWidth={isMobile}>Cancel</Button>
+                    <Button variant="contained" color="primary" onClick={handleSubmit} disabled={loading} fullWidth={isMobile} startIcon={loading ? <CircularProgress size={20} color="inherit" /> : null}>
+                        Submit Request
+                    </Button>
+                </Box>
+            </Paper>
         </DashboardLayout>
     );
-};
-
-const inputStyle = {
-    border: 'none',
-    borderBottom: '1px dotted #9ca3af',
-    padding: '0.25rem',
-    backgroundColor: 'transparent',
-    outline: 'none',
-    fontFamily: 'inherit',
-    fontSize: 'inherit'
-};
-
-const thStyle = {
-    border: '1px solid black',
-    padding: '0.5rem',
-    textAlign: 'center',
-    fontSize: '12px',
-    fontWeight: 'bold',
-    verticalAlign: 'middle'
-};
-
-const tdStyle = {
-    border: '1px solid black',
-    padding: '0.5rem',
-    verticalAlign: 'top'
 };
 
 export default RequestForm;

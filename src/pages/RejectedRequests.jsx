@@ -17,7 +17,12 @@ import {
     DialogActions,
     Button,
     IconButton,
-    Tooltip
+    Tooltip,
+    Stack,
+    Card,
+    CardContent,
+    useTheme,
+    useMediaQuery
 } from '@mui/material';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import AttachFileIcon from '@mui/icons-material/AttachFile';
@@ -31,6 +36,9 @@ const RejectedRequests = () => {
     const [loading, setLoading] = useState(true);
     const [selectedRequest, setSelectedRequest] = useState(null);
     const [openModal, setOpenModal] = useState(false);
+    
+    const theme = useTheme();
+    const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
     const handleView = (request) => {
         setSelectedRequest(request);
@@ -68,6 +76,49 @@ const RejectedRequests = () => {
         <DashboardLayout role="manager" title="Rejected Requests">
             {loading ? (
                 <LoadingSpinner />
+            ) : requests.length === 0 ? (
+                <Paper sx={{ p: 6, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, color: 'text.secondary', border: 'none', boxShadow: 'var(--shadow-sm)' }}>
+                    <AssignmentIcon sx={{ fontSize: 48, color: 'grey.300' }} />
+                    <Typography>No rejected requests found.</Typography>
+                </Paper>
+            ) : isMobile ? (
+                <Stack spacing={2}>
+                    {requests.map(req => (
+                        <Card key={req.id} sx={{ borderRadius: 2, boxShadow: 'var(--shadow-sm)' }}>
+                            <CardContent>
+                                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                                    <Typography variant="subtitle2" color="primary" fontWeight="bold">#{req.id}</Typography>
+                                    <Chip label="REJECTED" color="error" size="small" />
+                                </Box>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                                    <Avatar sx={{ width: 20, height: 20, fontSize: '0.675rem', bgcolor: 'grey.300' }}>
+                                        {req.user.username.charAt(0).toUpperCase()}
+                                    </Avatar>
+                                    <Typography variant="body2" fontWeight="medium">{req.user.username}</Typography>
+                                </Box>
+                                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                                    {req.descriptionEn}
+                                </Typography>
+                                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <Chip
+                                        icon={<AttachFileIcon sx={{ fontSize: '1rem !important' }} />}
+                                        label={`${req.documents.length} files`}
+                                        size="small"
+                                        variant="outlined"
+                                    />
+                                    <Button
+                                        size="small"
+                                        variant="outlined"
+                                        onClick={() => handleView(req)}
+                                        startIcon={<VisibilityIcon />}
+                                    >
+                                        View Details
+                                    </Button>
+                                </Box>
+                            </CardContent>
+                        </Card>
+                    ))}
+                </Stack>
             ) : (
                 <Paper sx={{ width: '100%', overflow: 'hidden', border: 'none', boxShadow: 'var(--shadow-sm)' }}>
                     <TableContainer>
@@ -129,16 +180,6 @@ const RejectedRequests = () => {
                                         </TableCell>
                                     </TableRow>
                                 ))}
-                                {requests.length === 0 && (
-                                    <TableRow>
-                                        <TableCell colSpan={7} align="center" sx={{ py: 6 }}>
-                                            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, color: 'text.secondary' }}>
-                                                <AssignmentIcon sx={{ fontSize: 48, color: 'grey.300' }} />
-                                                <Typography>No rejected requests found.</Typography>
-                                            </Box>
-                                        </TableCell>
-                                    </TableRow>
-                                )}
                             </TableBody>
                         </Table>
                     </TableContainer>

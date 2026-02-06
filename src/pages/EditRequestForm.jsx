@@ -1,7 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-
-import { CircularProgress } from '@mui/material';
+import { 
+    CircularProgress, 
+    Box, 
+    Typography, 
+    TextField, 
+    Button, 
+    Paper, 
+    Stack, 
+    Alert, 
+    List, 
+    ListItem, 
+    ListItemText,
+    useTheme,
+    useMediaQuery
+} from '@mui/material';
 import LoadingSpinner from '../components/LoadingSpinner';
 import DashboardLayout from '../components/DashboardLayout';
 
@@ -18,6 +31,8 @@ const EditRequestForm = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const navigate = useNavigate();
+    const theme = useTheme();
+    const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
     useEffect(() => {
         fetchRequest();
@@ -27,11 +42,6 @@ const EditRequestForm = () => {
         setIsLoading(true);
         const token = localStorage.getItem('token');
         try {
-            // Re-using getMyRequests logic but typically we want a getSingleRequest endpoint
-            // For simplicity, we'll fetch all and find, OR implement getOne.
-            // Let's implement a simple getOne in backend or just use the list for now if lazy.
-            // Better to fetch specific request. I'll rely on a new endpoint or filter.
-            // Let's assume we add GET /api/requests/:id
             const response = await fetch(`${API_URL}/api/requests/${id}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
@@ -40,7 +50,6 @@ const EditRequestForm = () => {
                 setDescriptionEn(data.descriptionEn);
                 setDescriptionFr(data.descriptionFr);
                 setExistingDocuments(data.documents);
-                // Also show history/comments if available
                 if (data.history) {
                     const minuteComments = data.history.filter(h => h.action === 'MINUTE' || h.action === 'REJECT').map(h => h.comment);
                     setComments(minuteComments);
@@ -103,68 +112,87 @@ const EditRequestForm = () => {
 
     return (
         <DashboardLayout role="clerk" title={`Edit Payment Request #${id}`}>
-            <div className="login-container" style={{ maxWidth: '600px', margin: '0 auto' }}>
-                <h2>Edit Payment Request #{id}</h2>
-                {error && <p className="error">{error}</p>}
+            <Paper sx={{ maxWidth: '600px', margin: '0 auto', p: { xs: 2, sm: 4 }, borderRadius: 2, boxShadow: 'var(--shadow-md)' }}>
+                <Typography variant="h5" fontWeight="bold" gutterBottom>
+                    Edit Payment Request #{id}
+                </Typography>
+                
+                {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
 
                 {comments.length > 0 && (
-                    <div style={{ backgroundColor: '#fff7ed', padding: '1rem', marginBottom: '1rem', borderRadius: '4px', border: '1px solid #fed7aa' }}>
-                        <h4 style={{ margin: '0 0 0.5rem 0', color: '#c2410c' }}>Manager Comments:</h4>
-                        <ul style={{ margin: 0, paddingLeft: '1.5rem' }}>
-                            {comments.map((c, i) => <li key={i}>{c}</li>)}
-                        </ul>
-                    </div>
+                    <Box sx={{ p: 2, bgcolor: 'warning.light', color: 'warning.contrastText', borderRadius: 2, mb: 3, border: '1px solid', borderColor: 'warning.main' }}>
+                        <Typography variant="subtitle2" fontWeight="bold" gutterBottom>
+                            Manager Comments:
+                        </Typography>
+                        <List size="small" sx={{ p: 0 }}>
+                            {comments.map((c, i) => (
+                                <ListItem key={i} sx={{ px: 0, py: 0.5 }}>
+                                    <ListItemText primary={c} primaryTypographyProps={{ variant: 'body2' }} />
+                                </ListItem>
+                            ))}
+                        </List>
+                    </Box>
                 )}
 
-                <form onSubmit={handleSubmit}>
-                    <div>
-                        <label>Description (English):</label>
-                        <textarea
-                            value={descriptionEn}
-                            onChange={(e) => setDescriptionEn(e.target.value)}
-                            style={{ width: '100%', padding: '0.75rem', border: '1px solid #d1d5db', borderRadius: '4px' }}
-                            rows="3"
-                            required
-                        />
-                    </div>
-                    <div>
-                        <label>Description (French):</label>
-                        <textarea
-                            value={descriptionFr}
-                            onChange={(e) => setDescriptionFr(e.target.value)}
-                            style={{ width: '100%', padding: '0.75rem', border: '1px solid #d1d5db', borderRadius: '4px' }}
-                            rows="3"
-                            required
-                        />
-                    </div>
-                    <div>
-                        <label>New Supporting Documents (Optional):</label>
+                <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                    <TextField
+                        fullWidth
+                        multiline
+                        rows={3}
+                        label="Description (English)"
+                        value={descriptionEn}
+                        onChange={(e) => setDescriptionEn(e.target.value)}
+                        required
+                        variant="outlined"
+                    />
+                    <TextField
+                        fullWidth
+                        multiline
+                        rows={3}
+                        label="Description (French)"
+                        value={descriptionFr}
+                        onChange={(e) => setDescriptionFr(e.target.value)}
+                        required
+                        variant="outlined"
+                    />
+                    <Box>
+                        <Typography variant="subtitle2" fontWeight="bold" gutterBottom>
+                            New Supporting Documents (Optional)
+                        </Typography>
                         <input
                             type="file"
                             multiple
                             onChange={handleFileChange}
-                            style={{ border: 'none', padding: '0' }}
+                            style={{ border: '1px solid #ccc', padding: '0.5rem', width: '100%', borderRadius: '4px' }}
                         />
-                        <small style={{ color: '#6b7280' }}>Uploading new files will append to existing ones.</small>
+                        <Typography variant="caption" color="text.secondary" display="block" sx={{ mt: 1 }}>
+                            Uploading new files will append to existing ones.
+                        </Typography>
+                        
                         {existingDocuments.length > 0 && (
-                            <div style={{ marginTop: '0.5rem' }}>
-                                <strong>Existing files:</strong>
-                                <ul style={{ margin: '0.25rem 0 0 1rem', fontSize: '0.875rem' }}>
+                            <Box sx={{ mt: 2 }}>
+                                <Typography variant="subtitle2" fontWeight="bold">Existing files:</Typography>
+                                <List size="small">
                                     {existingDocuments.map(doc => (
-                                        <li key={doc.id}>{doc.originalName}</li>
+                                        <ListItem key={doc.id} sx={{ px: 0, py: 0 }}>
+                                            <ListItemText primary={doc.originalName} primaryTypographyProps={{ variant: 'body2' }} />
+                                        </ListItem>
                                     ))}
-                                </ul>
-                            </div>
+                                </List>
+                            </Box>
                         )}
-                    </div>
-                    <div style={{ display: 'flex', gap: '1rem' }}>
-                        <button type="button" onClick={() => navigate('/clerk-dashboard')} style={{ backgroundColor: '#9ca3af' }} disabled={isSubmitting}>Cancel</button>
-                        <button type="submit" disabled={isSubmitting} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                            {isSubmitting ? <CircularProgress size={16} color="inherit" /> : 'Update Request'}
-                        </button>
-                    </div>
-                </form>
-            </div>
+                    </Box>
+
+                    <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end', flexDirection: { xs: 'column', sm: 'row' } }}>
+                        <Button variant="outlined" color="inherit" onClick={() => navigate('/clerk-dashboard')} disabled={isSubmitting} fullWidth={isMobile}>
+                            Cancel
+                        </Button>
+                        <Button type="submit" variant="contained" color="primary" disabled={isSubmitting} fullWidth={isMobile} startIcon={isSubmitting ? <CircularProgress size={20} color="inherit" /> : null}>
+                            Update Request
+                        </Button>
+                    </Box>
+                </Box>
+            </Paper>
         </DashboardLayout>
     );
 };
