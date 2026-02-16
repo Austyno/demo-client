@@ -16,10 +16,8 @@ import {
     Stack,
     Tooltip,
     Dialog,
-    DialogTitle,
     DialogContent,
     DialogActions,
-    IconButton,
     Card,
     CardContent,
     useTheme,
@@ -32,7 +30,6 @@ import AttachFileIcon from '@mui/icons-material/AttachFile';
 import AssignmentIcon from '@mui/icons-material/Assignment';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import SearchIcon from '@mui/icons-material/Search';
-import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import TextField from '@mui/material/TextField';
 import VoucherLayout from '../components/VoucherLayout';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -41,55 +38,29 @@ import HistoryIcon from '@mui/icons-material/History';
 
 import { API_URL } from '../config';
 
-const PendingRequests = () => {
+const PendingEDRequests = () => {
     const [requests, setRequests] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selectedRequest, setSelectedRequest] = useState(null);
     const [openModal, setOpenModal] = useState(false);
-    const [reasonModalOpen, setReasonModalOpen] = useState(false);
     const [historyModalOpen, setHistoryModalOpen] = useState(false);
-    const [currentReason, setCurrentReason] = useState('');
     const [search, setSearch] = useState('');
     
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-
-    const getStatusColor = (status) => {
-        switch (status) {
-            case 'PENDING_MANAGER': return 'info';
-            case 'PENDING_ED': return 'warning';
-            case 'RETURNED_MANAGER':
-            case 'RETURNED_ED': return 'secondary';
-            default: return 'default';
-        }
-    };
-
-    const getStatusLabel = (status) => {
-        switch (status) {
-            case 'PENDING_MANAGER': return 'Awaiting Your Approval';
-            case 'PENDING_ED': return 'Awaiting ED';
-            case 'RETURNED_MANAGER': return 'Returned to Clerk';
-            case 'RETURNED_ED': return 'Returned from ED';
-            default: return status;
-        }
-    };
 
     const handleView = (request) => {
         setSelectedRequest(request);
         setOpenModal(true);
     };
 
-    const handleViewHistory = (request) => {
-        setSelectedRequest(request);
+    const handleViewHistory = (req) => {
+        setSelectedRequest(req);
         setHistoryModalOpen(true);
     };
 
     const handleViewDocuments = (request) => {
         if (request.documents && request.documents.length > 0) {
-            // If only one document, open it. If multiple, maybe open the first or let user choose.
-            // For now, let's open all of them in new tabs if they are few, or the first one.
-            // A better way is to just use the main View button which already shows the PV with document links.
-            // But the user specifically asked for THIS icon to be clickable.
             request.documents.forEach(doc => {
                 window.open(`${API_URL}/${doc.filePath}`, '_blank');
             });
@@ -99,15 +70,6 @@ const PendingRequests = () => {
     const handleCloseModal = () => {
         setOpenModal(false);
         setSelectedRequest(null);
-    };
-
-    const handleViewReason = (req) => {
-        const returnAction = [...(req.history || [])]
-            .reverse()
-            .find(h => h.action === 'RETURNED_ED');
-        
-        setCurrentReason(returnAction?.comment || 'No reason provided.');
-        setReasonModalOpen(true);
     };
 
     useEffect(() => {
@@ -120,18 +82,17 @@ const PendingRequests = () => {
 
     useEffect(() => {
         const interval = setInterval(() => {
-            fetchRequests(true);
+            fetchRequests();
         }, 60000); // 1 minute
 
         return () => clearInterval(interval);
     }, []);
 
-    const fetchRequests = async (silent = false) => {
-        if (!silent) setLoading(true);
+    const fetchRequests = async () => {
+        setLoading(true);
         const token = localStorage.getItem('token');
         try {
-            const url = new URL(`${API_URL}/api/requests/subordinates`);
-            url.searchParams.append('status', 'PENDING_MANAGER,RETURNED_ED');
+            const url = new URL(`${API_URL}/api/requests/ed-tasks`);
             if (search) url.searchParams.append('search', search);
 
             const response = await fetch(url.toString(), {
@@ -151,13 +112,13 @@ const PendingRequests = () => {
     const handleAction = async (id, action) => {
         let comment = '';
         if (action === 'REJECT') {
-            comment = prompt('Please provide a reason for rejection:');
+            comment = prompt('Please provide a reason for final rejection:');
             if (!comment) return;
         } else if (action === 'RETURN') {
-            comment = prompt('Please provide comments for returning to clerk:');
+            comment = prompt('Please provide comments for returning to manager:');
             if (!comment) return;
         } else if (action === 'APPROVE') {
-            if (!confirm('Are you sure you want to approve this request?')) return;
+            if (!confirm('Are you sure you want to give final approval to this request?')) return;
         }
 
         const token = localStorage.getItem('token');
@@ -183,137 +144,115 @@ const PendingRequests = () => {
         }
     };
 
-const ActionButtons = ({ req, isCard, onView, onReason, onHistory, onAction }) => (
-    <Stack direction={isCard ? "column" : "row"} spacing={1} justifyContent={isCard ? "stretch" : "flex-end"}>
-        <Tooltip title="View History">
-            <Button
-                size="small"
-                variant="outlined"
-                color="secondary"
-                onClick={() => onHistory(req)}
-                sx={{ 
-                    bgcolor: 'rgba(156, 39, 176, 0.1)', 
-                    color: 'secondary.main', 
-                    boxShadow: 'none', 
-                    '&:hover': { bgcolor: 'rgba(156, 39, 176, 0.2)', boxShadow: 'none' } 
-                }}
-                startIcon={<HistoryIcon />}
-                fullWidth={isCard}
-            >
-                History
-            </Button>
-        </Tooltip>
-        <Tooltip title="View Details">
-            <Button
-                size="small"
-                variant="outlined"
-                onClick={() => onView(req)}
-                startIcon={<VisibilityIcon />}
-                fullWidth={isCard}
-            >
-                View
-            </Button>
-        </Tooltip>
-        {req.status === 'RETURNED_ED' && (
-            <Tooltip title="View Return Reason">
+    const ActionButtons = ({ req, isCard = false }) => (
+        <Stack direction={isCard ? "column" : "row"} spacing={1} justifyContent={isCard ? "stretch" : "flex-end"}>
+            <Tooltip title="View History">
                 <Button
                     size="small"
                     variant="outlined"
-                    color="info"
-                    onClick={() => onReason(req)}
-                    startIcon={<InfoOutlinedIcon />}
+                    color="secondary"
+                    onClick={() => handleViewHistory(req)}
+                    sx={{ 
+                        bgcolor: 'rgba(156, 39, 176, 0.1)', 
+                        color: 'secondary.main', 
+                        boxShadow: 'none', 
+                        '&:hover': { bgcolor: 'rgba(156, 39, 176, 0.2)', boxShadow: 'none' } 
+                    }}
+                    startIcon={<HistoryIcon />}
                     fullWidth={isCard}
                 >
-                    Reason
+                    History
                 </Button>
             </Tooltip>
-        )}
-        {isCard ? (
-            <Stack direction="row" spacing={1}>
-                {req.status !== 'RETURNED_ED' && (
+            <Tooltip title="View Details">
+                <Button
+                    size="small"
+                    variant="outlined"
+                    onClick={() => handleView(req)}
+                    startIcon={<VisibilityIcon />}
+                    fullWidth={isCard}
+                >
+                    View
+                </Button>
+            </Tooltip>
+            {isCard ? (
+                <Stack direction="row" spacing={1}>
                     <Button
                         variant="contained"
                         color="success"
                         size="small"
-                        onClick={() => onAction(req.id, 'APPROVE')}
+                        onClick={() => handleAction(req.id, 'APPROVE')}
                         startIcon={<CheckIcon />}
                         sx={{ flex: 1 }}
                     >
                         Approve
                     </Button>
-                )}
-                <Button
-                    variant="contained"
-                    color="warning"
-                    size="small"
-                    onClick={() => onAction(req.id, 'RETURN')}
-                    startIcon={<ReplyIcon />}
-                    sx={{ flex: 1 }}
-                >
-                    Return
-                </Button>
-                {req.status !== 'RETURNED_ED' && (
+                    <Button
+                        variant="contained"
+                        color="warning"
+                        size="small"
+                        onClick={() => handleAction(req.id, 'RETURN')}
+                        startIcon={<ReplyIcon />}
+                        sx={{ flex: 1 }}
+                    >
+                        Return
+                    </Button>
                     <Button
                         variant="contained"
                         color="error"
                         size="small"
-                        onClick={() => onAction(req.id, 'REJECT')}
+                        onClick={() => handleAction(req.id, 'REJECT')}
                         startIcon={<CloseIcon />}
                         sx={{ flex: 1 }}
                     >
                         Reject
                     </Button>
-                )}
-            </Stack>
-        ) : (
-            <>
-                {req.status !== 'RETURNED_ED' && (
-                    <Tooltip title="Approve">
+                </Stack>
+            ) : (
+                <>
+                    <Tooltip title="Final Approve">
                         <Button
                             variant="contained"
                             color="success"
                             size="small"
-                            onClick={() => onAction(req.id, 'APPROVE')}
+                            onClick={() => handleAction(req.id, 'APPROVE')}
                             startIcon={<CheckIcon />}
                             sx={{ bgcolor: 'rgba(16, 185, 129, 0.1)', color: 'success.main', boxShadow: 'none', '&:hover': { bgcolor: 'rgba(16, 185, 129, 0.2)', boxShadow: 'none' } }}
                         >
                             Approve
                         </Button>
                     </Tooltip>
-                )}
-                <Tooltip title="Return to Clerk">
-                    <Button
-                        variant="contained"
-                        color="warning"
-                        size="small"
-                        onClick={() => onAction(req.id, 'RETURN')}
-                        startIcon={<ReplyIcon />}
-                        sx={{ bgcolor: 'rgba(245, 158, 11, 0.1)', color: 'warning.main', boxShadow: 'none', '&:hover': { bgcolor: 'rgba(245, 158, 11, 0.2)', boxShadow: 'none' } }}
-                    >
-                        Return
-                    </Button>
-                </Tooltip>
-                {req.status !== 'RETURNED_ED' && (
-                    <Tooltip title="Reject">
+                    <Tooltip title="Return to Manager">
+                        <Button
+                            variant="contained"
+                            color="warning"
+                            size="small"
+                            onClick={() => handleAction(req.id, 'RETURN')}
+                            startIcon={<ReplyIcon />}
+                            sx={{ bgcolor: 'rgba(245, 158, 11, 0.1)', color: 'warning.main', boxShadow: 'none', '&:hover': { bgcolor: 'rgba(245, 158, 11, 0.2)', boxShadow: 'none' } }}
+                        >
+                            Return
+                        </Button>
+                    </Tooltip>
+                    <Tooltip title="Final Reject">
                         <Button
                             variant="contained"
                             color="error"
                             size="small"
-                            onClick={() => onAction(req.id, 'REJECT')}
+                            onClick={() => handleAction(req.id, 'REJECT')}
                             startIcon={<CloseIcon />}
                             sx={{ bgcolor: 'rgba(239, 68, 68, 0.1)', color: 'error.main', boxShadow: 'none', '&:hover': { bgcolor: 'rgba(239, 68, 68, 0.2)', boxShadow: 'none' } }}
                         >
                             Reject
                         </Button>
                     </Tooltip>
-                )}
-            </>
-        )}
-    </Stack>
-);
+                </>
+            )}
+        </Stack>
+    );
 
     return (
-        <DashboardLayout role="manager" title="Pending Requests">
+        <DashboardLayout role="ed" title="Awaiting ED Approval">
             <Box sx={{ mb: 3, maxWidth: 400 }}>
                 <TextField
                     fullWidth
@@ -336,7 +275,7 @@ const ActionButtons = ({ req, isCard, onView, onReason, onHistory, onAction }) =
             ) : requests.length === 0 ? (
                 <Paper sx={{ p: 6, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, color: 'text.secondary', border: 'none', boxShadow: 'var(--shadow-sm)' }}>
                     <AssignmentIcon sx={{ fontSize: 48, color: 'grey.300' }} />
-                    <Typography>No pending requests found.</Typography>
+                    <Typography>No requests awaiting your approval.</Typography>
                 </Paper>
             ) : isMobile ? (
                 <Stack spacing={2}>
@@ -347,33 +286,24 @@ const ActionButtons = ({ req, isCard, onView, onReason, onHistory, onAction }) =
                                     <Typography variant="subtitle2" color="primary" fontWeight="bold">#{req.id}</Typography>
                                     <Chip
                                         icon={<AttachFileIcon sx={{ fontSize: '1rem !important' }} />}
-                                        label={`${req.documents.length} files`}
+                                        label={`${req.documents?.length || 0} files`}
                                         size="small"
                                         variant="outlined"
                                         onClick={(e) => { e.stopPropagation(); handleViewDocuments(req); }}
                                         sx={{ cursor: 'pointer', '&:hover': { bgcolor: 'rgba(0,0,0,0.04)' } }}
                                     />
                                 </Box>
-                                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                        <Avatar sx={{ width: 20, height: 20, fontSize: '0.675rem', bgcolor: 'grey.300' }}>
-                                            {req.user.username.charAt(0).toUpperCase()}
-                                        </Avatar>
-                                        <Typography variant="body2" fontWeight="medium">{req.user.username}</Typography>
-                                    </Box>
-                                    <Chip
-                                        label={getStatusLabel(req.status)}
-                                        color={getStatusColor(req.status)}
-                                        size="small"
-                                        variant="filled"
-                                        sx={{ height: 20, fontSize: '0.625rem', fontWeight: 'bold' }}
-                                    />
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                                    <Avatar sx={{ width: 20, height: 20, fontSize: '0.675rem', bgcolor: 'grey.300' }}>
+                                        {req.user?.username.charAt(0).toUpperCase()}
+                                    </Avatar>
+                                    <Typography variant="body2" fontWeight="medium">{req.user?.username}</Typography>
                                 </Box>
-                                <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                                    Manager: {req.manager?.username || 'N/A'}
-                                </Typography>
+                                <Box sx={{ mt: 1, mb: 1 }}>
+                                    <Typography variant="caption" color="text.secondary">Manager: {req.manager?.username}</Typography>
+                                </Box>
                                 <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                                    {req.descriptionEn}
+                                    {req.voucher?.descriptionEn || req.descriptionEn}
                                 </Typography>
                                 <ActionButtons req={req} isCard />
                             </CardContent>
@@ -383,14 +313,13 @@ const ActionButtons = ({ req, isCard, onView, onReason, onHistory, onAction }) =
             ) : (
                 <Paper sx={{ width: '100%', overflow: 'hidden', border: 'none', boxShadow: 'var(--shadow-sm)' }}>
                     <TableContainer>
-                        <Table sx={{ minWidth: 650 }} aria-label="pending requests table">
+                        <Table sx={{ minWidth: 650 }} aria-label="pending ed requests table">
                             <TableHead>
                                 <TableRow>
                                     <TableCell>ID</TableCell>
                                     <TableCell>Requester</TableCell>
                                     <TableCell>Manager</TableCell>
                                     <TableCell>Description (En)</TableCell>
-                                    <TableCell>Status</TableCell>
                                     <TableCell>Documents</TableCell>
                                     <TableCell align="right">Actions</TableCell>
                                 </TableRow>
@@ -404,30 +333,21 @@ const ActionButtons = ({ req, isCard, onView, onReason, onHistory, onAction }) =
                                         <TableCell>
                                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                                                 <Avatar sx={{ width: 24, height: 24, fontSize: '0.75rem', bgcolor: 'grey.300' }}>
-                                                    {req.user.username.charAt(0).toUpperCase()}
+                                                    {req.user?.username.charAt(0).toUpperCase()}
                                                 </Avatar>
-                                                <Typography variant="body2">{req.user.username}</Typography>
+                                                <Typography variant="body2">{req.user?.username}</Typography>
                                             </Box>
                                         </TableCell>
                                         <TableCell>
-                                            <Typography variant="body2">{req.manager?.username || 'N/A'}</Typography>
+                                            <Typography variant="body2">{req.manager?.username}</Typography>
                                         </TableCell>
                                         <TableCell sx={{ maxWidth: 300 }}>
-                                            <Typography variant="body2" noWrap>{req.descriptionEn}</Typography>
-                                        </TableCell>
-                                        <TableCell>
-                                            <Chip
-                                                label={getStatusLabel(req.status)}
-                                                color={getStatusColor(req.status)}
-                                                size="small"
-                                                variant="outlined"
-                                                sx={{ fontWeight: 'medium' }}
-                                            />
+                                            <Typography variant="body2" noWrap>{req.voucher?.descriptionEn || req.descriptionEn}</Typography>
                                         </TableCell>
                                         <TableCell>
                                             <Chip
                                                 icon={<AttachFileIcon />}
-                                                label={`${req.documents.length} files`}
+                                                label={`${req.documents?.length || 0} files`}
                                                 size="small"
                                                 variant="outlined"
                                                 onClick={(e) => { e.stopPropagation(); handleViewDocuments(req); }}
@@ -435,13 +355,7 @@ const ActionButtons = ({ req, isCard, onView, onReason, onHistory, onAction }) =
                                             />
                                         </TableCell>
                                         <TableCell align="right">
-                                            <ActionButtons 
-                                                req={req} 
-                                                onView={handleView} 
-                                                onReason={handleViewReason} 
-                                                onHistory={handleViewHistory}
-                                                onAction={handleAction} 
-                                            />
+                                            <ActionButtons req={req} />
                                         </TableCell>
                                     </TableRow>
                                 ))}
@@ -498,57 +412,32 @@ const ActionButtons = ({ req, isCard, onView, onReason, onHistory, onAction }) =
                                     View PDF
                                 </Button>
                             )}
-                            {selectedRequest.status !== 'RETURNED_ED' && (
-                                <Button
-                                    variant="contained"
-                                    color="success"
-                                    size="small"
-                                    onClick={() => { handleCloseModal(); handleAction(selectedRequest.id, 'APPROVE'); }}
-                                >
-                                    Approve
-                                </Button>
-                            )}
-                            {selectedRequest.status !== 'RETURNED_ED' && (
-                                <Button
-                                    variant="contained"
-                                    color="error"
-                                    size="small"
-                                    onClick={() => { handleCloseModal(); handleAction(selectedRequest.id, 'REJECT'); }}
-                                >
-                                    Reject
-                                </Button>
-                            )}
+                            <Button
+                                variant="contained"
+                                color="success"
+                                size="small"
+                                onClick={() => { handleCloseModal(); handleAction(selectedRequest.id, 'APPROVE'); }}
+                            >
+                                Final Approve
+                            </Button>
                             <Button
                                 variant="contained"
                                 color="warning"
                                 size="small"
                                 onClick={() => { handleCloseModal(); handleAction(selectedRequest.id, 'RETURN'); }}
                             >
-                                Return
+                                Return to Manager
+                            </Button>
+                            <Button
+                                variant="contained"
+                                color="error"
+                                size="small"
+                                onClick={() => { handleCloseModal(); handleAction(selectedRequest.id, 'REJECT'); }}
+                            >
+                                Final Reject
                             </Button>
                         </Box>
                     )}
-                </DialogActions>
-            </Dialog>
-
-            {/* Return Reason Modal */}
-            <Dialog 
-                open={reasonModalOpen} 
-                onClose={() => setReasonModalOpen(false)}
-                PaperProps={{ sx: { borderRadius: 1, p: 1 } }}
-            >
-                <DialogTitle sx={{ fontWeight: 'bold', pb: 1 }}>
-                    Return Reason
-                </DialogTitle>
-                <DialogContent>
-                    <Typography variant="body1" sx={{ mt: 1 }}>
-                        {currentReason}
-                    </Typography>
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={() => setReasonModalOpen(false)} variant="contained" sx={{ borderRadius: 2 }}>
-                        Close
-                    </Button>
                 </DialogActions>
             </Dialog>
 
@@ -562,4 +451,4 @@ const ActionButtons = ({ req, isCard, onView, onReason, onHistory, onAction }) =
     );
 };
 
-export default PendingRequests;
+export default PendingEDRequests;

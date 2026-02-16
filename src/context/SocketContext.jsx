@@ -24,7 +24,7 @@ export const SocketProvider = ({ children }) => {
                     <div onClick={() => window.dispatchEvent(new CustomEvent('openChat', { detail: message }))} style={{ cursor: 'pointer' }}>
                         <strong>{message.sender.username}</strong>: {message.title}
                     </div>,
-                    { duration: 5000, position: 'bottom-right' }
+                    { duration: 5000, position: 'top-right' }
                 );
             });
 
@@ -38,6 +38,10 @@ export const SocketProvider = ({ children }) => {
                     if (response.ok) {
                         const data = await response.json();
                         setUnreadCount(data.count);
+                    } else if (response.status === 401 || response.status === 403) {
+                        // Handled by Axios interceptor globally if using axios, 
+                        // but here we use fetch. Let's logout manually if needed or just log.
+                        console.error('Auth error fetching unread count');
                     }
                 } catch (error) {
                     console.error('Error fetching unread count', error);

@@ -27,8 +27,12 @@ import {
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import AttachFileIcon from '@mui/icons-material/AttachFile';
 import AssignmentIcon from '@mui/icons-material/Assignment';
+import SearchIcon from '@mui/icons-material/Search';
+import TextField from '@mui/material/TextField';
 import VoucherLayout from '../components/VoucherLayout';
 import LoadingSpinner from '../components/LoadingSpinner';
+import AuditTrailModal from '../components/AuditTrailModal';
+import HistoryIcon from '@mui/icons-material/History';
 import { API_URL } from '../config';
 import { useAuth } from '../context/AuthContext';
 
@@ -37,14 +41,45 @@ const ApprovedRequests = () => {
     const [loading, setLoading] = useState(true);
     const [selectedRequest, setSelectedRequest] = useState(null);
     const [openModal, setOpenModal] = useState(false);
+    const [historyModalOpen, setHistoryModalOpen] = useState(false);
+    const [search, setSearch] = useState('');
     const { user } = useAuth();
     
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
+    const getStatusColor = (status) => {
+        switch (status) {
+            case 'APPROVED': return 'success';
+            case 'PENDING_ED': return 'warning';
+            default: return 'default';
+        }
+    };
+
+    const getStatusLabel = (status) => {
+        switch (status) {
+            case 'APPROVED': return 'Approved';
+            case 'PENDING_ED': return 'Awaiting ED';
+            default: return status;
+        }
+    };
+
     const handleView = (request) => {
         setSelectedRequest(request);
         setOpenModal(true);
+    };
+
+    const handleViewHistory = (req) => {
+        setSelectedRequest(req);
+        setHistoryModalOpen(true);
+    };
+
+    const handleViewDocuments = (request) => {
+        if (request.documents && request.documents.length > 0) {
+            request.documents.forEach(doc => {
+                window.open(`${API_URL}/${doc.filePath}`, '_blank');
+            });
+        }
     };
 
     const handleCloseModal = () => {
@@ -53,23 +88,33 @@ const ApprovedRequests = () => {
     };
 
     useEffect(() => {
-        fetchRequests();
-        const interval = setInterval(() => {
+        const timer = setTimeout(() => {
             fetchRequests();
+        }, 500);
+        return () => clearTimeout(timer);
+    }, [search]);
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            fetchRequests(true);
         }, 60000); // 1 minute
 
         return () => clearInterval(interval);
     }, []);
 
-    const fetchRequests = async () => {
-        setLoading(true);
+    const fetchRequests = async (silent = false) => {
+        if (!silent) setLoading(true);
         const token = localStorage.getItem('token');
-        const endpoint = user?.role === 'MANAGER' 
-            ? `${API_URL}/api/requests/subordinates?status=APPROVED`
-            : `${API_URL}/api/requests?status=APPROVED`;
+        const endpoint = (user?.role === 'MANAGER' || user?.role === 'ED')
+            ? `${API_URL}/api/requests/subordinates`
+            : `${API_URL}/api/requests`;
             
+        const url = new URL(endpoint);
+        url.searchParams.append('status', 'APPROVED,PENDING_ED');
+        if (search) url.searchParams.append('search', search);
+
         try {
-            const response = await fetch(endpoint, {
+            const response = await fetch(url.toString(), {
                 headers: { Authorization: `Bearer ${token}` }
             });
             if (response.ok) {
@@ -85,6 +130,23 @@ const ApprovedRequests = () => {
 
     return (
         <DashboardLayout role={user?.role?.toLowerCase()} title="Approved Requests">
+            <Box sx={{ mb: 3, maxWidth: 400 }}>
+                <TextField
+                    fullWidth
+                    placeholder="Search by reference number..."
+                    size="small"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    InputProps={{
+                        startAdornment: (
+                            <Box sx={{ mr: 1, color: 'text.secondary', display: 'flex' }}>
+                                <SearchIcon fontSize="small" />
+                            </Box>
+                        ),
+                    }}
+                    sx={{ bgcolor: 'white', borderRadius: 2 }}
+                />
+            </Box>
             {loading ? (
                 <LoadingSpinner />
             ) : requests.length === 0 ? (
@@ -98,8 +160,13 @@ const ApprovedRequests = () => {
                         <Card key={req.id} sx={{ borderRadius: 2, boxShadow: 'var(--shadow-sm)' }}>
                             <CardContent>
                                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                                    <Typography variant="subtitle2" color="primary" fontWeight="bold">#{req.id}</Typography>
-                                    <Chip label="APPROVED" color="success" size="small" />
+                                    <Typography variant="subtitle2" color="primary" fontWeight="bold">#{req.referenceNumber || req.id}</Typography>
+                                    <Chip 
+                                        label={getStatusLabel(req.status)} 
+                                        color={getStatusColor(req.status)} 
+                                        size="small" 
+                                        sx={{ fontWeight: 'bold' }}
+                                    />
                                 </Box>
                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
                                     <Avatar sx={{ width: 20, height: 20, fontSize: '0.675rem', bgcolor: 'grey.300' }}>
@@ -107,8 +174,14 @@ const ApprovedRequests = () => {
                                     </Avatar>
                                     <Typography variant="body2" fontWeight="medium">{req.user.username}</Typography>
                                 </Box>
-                                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                                    {req.descriptionEn}
+                                <Typography variant="body1" sx={{ mb: 1, fontWeight: 500 }}>
+                                    {req.voucher?.beneficiary || 'N/A'}
+                                </Typography>
+                                <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                                    Requester: {req.user.username}
+                                </Typography>
+                                <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                                    Manager: {req.manager?.username || 'N/A'}
                                 </Typography>
                                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                     <Chip
@@ -116,7 +189,18 @@ const ApprovedRequests = () => {
                                         label={`${req.documents.length} files`}
                                         size="small"
                                         variant="outlined"
+                                        onClick={(e) => { e.stopPropagation(); handleViewDocuments(req); }}
+                                        sx={{ cursor: 'pointer', '&:hover': { bgcolor: 'rgba(0,0,0,0.04)' } }}
                                     />
+                                    <Button
+                                        size="small"
+                                        variant="outlined"
+                                        color="secondary"
+                                        onClick={() => handleViewHistory(req)}
+                                        startIcon={<HistoryIcon />}
+                                    >
+                                        History
+                                    </Button>
                                     <Button
                                         size="small"
                                         variant="outlined"
@@ -137,7 +221,8 @@ const ApprovedRequests = () => {
                             <TableHead>
                                 <TableRow>
                                     <TableCell>ID</TableCell>
-                                    <TableCell>From</TableCell>
+                                    <TableCell>Requester</TableCell>
+                                    <TableCell>Manager</TableCell>
                                     <TableCell>Description</TableCell>
                                     <TableCell>Date</TableCell>
                                     <TableCell>Documents</TableCell>
@@ -149,7 +234,7 @@ const ApprovedRequests = () => {
                                 {requests.map(req => (
                                     <TableRow key={req.id} hover>
                                         <TableCell>
-                                            <Typography variant="subtitle2" color="primary">#{req.id}</Typography>
+                                            <Typography variant="subtitle2" color="primary">#{req.referenceNumber || req.id}</Typography>
                                         </TableCell>
                                         <TableCell>
                                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -158,6 +243,9 @@ const ApprovedRequests = () => {
                                                 </Avatar>
                                                 <Typography variant="body2">{req.user.username}</Typography>
                                             </Box>
+                                        </TableCell>
+                                        <TableCell>
+                                            <Typography variant="body2">{req.manager?.username || 'N/A'}</Typography>
                                         </TableCell>
                                         <TableCell sx={{ maxWidth: 300 }}>
                                             <Typography variant="body2" noWrap>{req.descriptionEn}</Typography>
@@ -173,12 +261,28 @@ const ApprovedRequests = () => {
                                                 label={`${req.documents.length} files`}
                                                 size="small"
                                                 variant="outlined"
+                                                onClick={(e) => { e.stopPropagation(); handleViewDocuments(req); }}
+                                                sx={{ cursor: 'pointer', '&:hover': { bgcolor: 'rgba(0,0,0,0.04)' } }}
                                             />
                                         </TableCell>
                                         <TableCell>
-                                            <Chip label="APPROVED" color="success" size="small" />
+                                            <Chip 
+                                                label={getStatusLabel(req.status)} 
+                                                color={getStatusColor(req.status)} 
+                                                size="small" 
+                                                sx={{ fontWeight: 'bold' }}
+                                            />
                                         </TableCell>
                                         <TableCell align="right">
+                                            <Tooltip title="View History">
+                                                <IconButton
+                                                    size="small"
+                                                    onClick={() => handleViewHistory(req)}
+                                                    sx={{ color: 'secondary.main', mr: 1 }}
+                                                >
+                                                    <HistoryIcon />
+                                                </IconButton>
+                                            </Tooltip>
                                             <Tooltip title="View Details">
                                                 <IconButton
                                                     size="small"
@@ -203,13 +307,42 @@ const ApprovedRequests = () => {
                 maxWidth="md"
                 fullWidth
             >
-                <DialogContent sx={{ p: 0, bgcolor: '#f3f4f6' }}>
-                    <VoucherLayout request={selectedRequest} />
+                <DialogContent sx={{ p: 3, bgcolor: '#f3f4f6' }}>
+                    <Stack spacing={3}>
+                        {selectedRequest && selectedRequest.letter && (
+                            <Paper sx={{ p: 4, borderRadius: 1, boxShadow: 'var(--shadow-sm)' }}>
+                                <Typography variant="h6" gutterBottom sx={{ borderBottom: '2px solid', borderColor: 'divider', pb: 1, mb: 3, fontWeight: 'bold' }}>
+                                    REQUEST LETTER
+                                </Typography>
+                                <Box 
+                                    className="rich-text-content"
+                                    dangerouslySetInnerHTML={{ __html: selectedRequest.letter.content }} 
+                                    sx={{ 
+                                        '& ul, & ol': { pl: 3 },
+                                        '& p': { mb: 1 },
+                                        wordBreak: 'break-word',
+                                        overflowWrap: 'break-word',
+                                        '& img': { maxWidth: '100%', height: 'auto' }
+                                    }}
+                                />
+                            </Paper>
+                        )}
+                        <Paper sx={{ borderRadius: 1, boxShadow: 'var(--shadow-sm)', overflow: 'hidden' }}>
+                            <VoucherLayout request={selectedRequest} />
+                        </Paper>
+                    </Stack>
                 </DialogContent>
                 <DialogActions sx={{ p: 2, bgcolor: 'white' }}>
                     <Button onClick={handleCloseModal}>Close</Button>
                 </DialogActions>
             </Dialog>
+
+            <AuditTrailModal 
+                open={historyModalOpen}
+                onClose={() => setHistoryModalOpen(false)}
+                history={selectedRequest?.history}
+                referenceNumber={selectedRequest?.referenceNumber}
+            />
         </DashboardLayout>
     );
 };

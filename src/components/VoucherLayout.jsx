@@ -4,10 +4,10 @@ import { API_URL } from '../config';
 const VoucherLayout = ({ request }) => {
     if (!request) return null;
 
-    // Helper to format currency
-    const formatCurrency = (amount, currency) => {
-        return new Intl.NumberFormat('en-US', { style: 'currency', currency: currency || 'USD' }).format(amount);
-    };
+    // Normalize data: support either direct request object or request.voucher
+    const d = request.voucher || request;
+    const items = d.items && d.items.length > 0 ? d.items : [];
+    const totalAmount = d.totalAmount || d.amount || 0;
 
     const inputStyle = {
         border: 'none',
@@ -34,7 +34,7 @@ const VoucherLayout = ({ request }) => {
         border: '1px solid black',
         padding: '0.5rem',
         verticalAlign: 'top',
-        whiteSpace: 'pre-wrap' // Preserve newlines
+        whiteSpace: 'pre-wrap'
     };
 
     return (
@@ -44,40 +44,38 @@ const VoucherLayout = ({ request }) => {
                     <h1 style={{ fontSize: '24px', fontWeight: 'bold', letterSpacing: '2px', color: '#1f2937' }}>ISDAO</h1>
                 </div>
                 <div style={{ textAlign: 'right' }}>
-                    <p style={{ margin: 0 }}>PV {request.beneficiary || 'AVIENTI'}</p>
+                    <p style={{ margin: 0 }}>PV {d.beneficiary || 'AVIENTI'}</p>
                 </div>
             </div>
 
             <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
                 <h2 style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '0.5rem' }}>Bon de paiement // Payment Voucher</h2>
-                <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '0.5rem', justifyContent: 'center', textAlign: 'left', maxWidth: '500px', margin: '0 auto' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '1rem', justifyContent: 'center', textAlign: 'left', maxWidth: '600px', margin: '0 auto' }}>
                     <strong>Nom de la banque // Bank name:</strong>
-                    <span style={inputStyle}>{request.bankName}</span>
+                    <span style={inputStyle}>{d.bankName}</span>
 
                     <strong>Numéro de référence // Reference number:</strong>
-                    <span style={inputStyle}>{request.referenceNumber || 'N/A'}</span>
+                    <span style={inputStyle}>{request.referenceNumber || d.referenceNumber || 'N/A'}</span>
 
                     <strong>Numéro de compte // Account number:</strong>
-                    <span style={inputStyle}>{request.accountNumber}</span>
+                    <span style={inputStyle}>{d.accountNumber}</span>
 
                     <strong>Date // Date:</strong>
-                    <span style={inputStyle}>{request.requestDate ? new Date(request.requestDate).toLocaleDateString() : new Date(request.createdAt).toLocaleDateString()}</span>
+                    <span style={inputStyle}>{d.date ? new Date(d.date).toLocaleDateString() : (request.createdAt ? new Date(request.createdAt).toLocaleDateString() : 'N/A')}</span>
                 </div>
             </div>
 
-            <div style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' }}>
-                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flex: 1 }}>
-                    <strong>BENEFICAIRE // PAYEE:</strong>
-                    <span style={{ ...inputStyle, fontWeight: 'bold' }}>{request.beneficiary}</span>
-                </div>
+            <div style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                <strong>BENEFICAIRE // PAYEE:</strong>
+                <span style={{ ...inputStyle, fontWeight: 'bold', flex: 1 }}>{d.beneficiary}</span>
             </div>
 
-            <div style={{ marginBottom: '1rem', border: '1px solid #000', padding: '0.5rem' }}>
-                <div style={{ display: 'flex', gap: '1rem', marginBottom: '0.5rem' }}>
-                    <strong>MONTANT EN USD : {formatCurrency(request.amount, request.currency)} // AMOUNT IN USD : {formatCurrency(request.amount, request.currency)}</strong>
+            <div style={{ marginBottom: '1.5rem', border: '1px solid #000', padding: '1rem' }}>
+                <div style={{ marginBottom: '0.5rem' }}>
+                    <strong>MONTANT EN {d.currency || 'USD'} : {Number(totalAmount).toLocaleString()} // AMOUNT IN {d.currency || 'USD'} : {Number(totalAmount).toLocaleString()}</strong>
                 </div>
-                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                    <span style={{ ...inputStyle, width: '100%', fontStyle: 'italic' }}>{request.amountInWords}</span>
+                <div style={{ fontStyle: 'italic', borderTop: '1px dotted #ccc', paddingTop: '0.5rem' }}>
+                    {d.amountInWords}
                 </div>
             </div>
 
@@ -85,37 +83,37 @@ const VoucherLayout = ({ request }) => {
                 <thead>
                     <tr style={{ backgroundColor: '#f3f4f6' }}>
                         <th style={thStyle}>Détail du paiement // Particulars of payment</th>
-                        <th style={thStyle}>Montant (Devise) // Amount ({request.currency || 'USD'})</th>
+                        <th style={thStyle}>Montant ({d.currency || 'USD'})</th>
                         <th style={thStyle}>Nom du compte // Account name</th>
-                        <th style={thStyle}>Code de la source de financement // Funding source code</th>
+                        <th style={thStyle}>Code source // Source Code</th>
                         <th style={thStyle}>Code QuickBooks</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr>
-                        <td style={tdStyle}>
-                            <div style={{ marginBottom: '0.5rem' }}>{request.descriptionFr}</div>
-                            <div>{request.descriptionEn}</div>
-                        </td>
-                        <td style={tdStyle}>
-                            <div style={{ textAlign: 'right' }}>{request.amount?.toLocaleString()}</div>
-                        </td>
-                        <td style={tdStyle}>
-                            {request.accountName}
-                        </td>
-                        <td style={tdStyle}>
-                            {request.fundingSourceCode}
-                        </td>
-                        <td style={tdStyle}>
-                            {request.quickBooksCode}
-                        </td>
-                    </tr>
-                    <tr>
-                        <td style={{ ...tdStyle, fontWeight: 'bold' }}>TOTAL // TOTAL</td>
-                        <td style={{ ...tdStyle, fontWeight: 'bold', textAlign: 'right', textDecoration: 'underline' }}>{request.amount?.toLocaleString()}</td>
-                        <td style={tdStyle}></td>
-                        <td style={tdStyle}></td>
-                        <td style={tdStyle}></td>
+                    {items.length > 0 ? items.map((item, index) => (
+                        <tr key={index}>
+                            <td style={tdStyle}>{item.particulars}</td>
+                            <td style={{ ...tdStyle, textAlign: 'right' }}>{Number(item.amount || 0).toLocaleString()}</td>
+                            <td style={tdStyle}>{item.accountName}</td>
+                            <td style={tdStyle}>{item.fundingSourceCode}</td>
+                            <td style={tdStyle}>{item.quickBooksCode}</td>
+                        </tr>
+                    )) : (
+                        <tr>
+                            <td style={tdStyle}>
+                                <div>{d.descriptionFr}</div>
+                                <div style={{ marginTop: '0.25rem' }}>{d.descriptionEn}</div>
+                            </td>
+                            <td style={{ ...tdStyle, textAlign: 'right' }}>{Number(d.amount || 0).toLocaleString()}</td>
+                            <td style={tdStyle}>{d.accountName}</td>
+                            <td style={tdStyle}>{d.fundingSourceCode}</td>
+                            <td style={tdStyle}>{d.quickBooksCode}</td>
+                        </tr>
+                    )}
+                    <tr style={{ backgroundColor: '#f9fafb' }}>
+                        <td style={{ ...tdStyle, fontWeight: 'bold', textAlign: 'right' }}>TOTAL // TOTAL</td>
+                        <td style={{ ...tdStyle, fontWeight: 'bold', textAlign: 'right', textDecoration: 'underline' }}>{Number(totalAmount).toLocaleString()}</td>
+                        <td colSpan="3" style={tdStyle}></td>
                     </tr>
                 </tbody>
             </table>
@@ -127,7 +125,7 @@ const VoucherLayout = ({ request }) => {
                         {request.documents.map((doc, index) => (
                             <li key={index}>
                                 <a href={`${API_URL}/${doc.filePath}`} target="_blank" rel="noopener noreferrer" style={{ color: '#2563eb', textDecoration: 'underline' }}>
-                                    {doc.originalName}
+                                    {doc.fileName || doc.originalName || 'Document'}
                                 </a>
                             </li>
                         ))}
@@ -137,48 +135,22 @@ const VoucherLayout = ({ request }) => {
                 )}
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', marginTop: '3rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', marginTop: '3rem', borderTop: '1px solid #ccc', paddingTop: '1rem' }}>
                 <div>
                     <p><strong>Préparé par // Prepared By:</strong> <span style={{ marginLeft: '1rem' }}>{request.user?.username || 'Unknown'}</span></p>
                 </div>
                 <div style={{ textAlign: 'right' }}>
-                    <p><strong>Date:</strong> {new Date(request.createdAt).toLocaleDateString()}</p>
+                    <p><strong>Date:</strong> {request.createdAt ? new Date(request.createdAt).toLocaleDateString() : 'N/A'}</p>
                 </div>
             </div>
 
-            {/* History / Comments */}
-            {request.history && request.history.length > 0 && (
-                <div style={{ marginTop: '3rem', borderTop: '2px solid #000', paddingTop: '1rem' }}>
-                    <h3 style={{ fontSize: '16px', fontWeight: 'bold', marginBottom: '1rem', textTransform: 'uppercase' }}>Historique & Commentaires // History & Comments</h3>
-                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
-                        <thead>
-                            <tr style={{ backgroundColor: '#f3f4f6' }}>
-                                <th style={{ ...thStyle, width: '20%' }}>Date</th>
-                                <th style={{ ...thStyle, width: '15%' }}>Action</th>
-                                <th style={{ ...thStyle, width: '20%' }}>Par // By</th>
-                                <th style={{ ...thStyle }}>Commentaires // Comments</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {request.history.map((item, index) => (
-                                <tr key={index}>
-                                    <td style={tdStyle}>{new Date(item.timestamp).toLocaleString()}</td>
-                                    <td style={{ ...tdStyle, fontWeight: 'bold' }}>{item.action}</td>
-                                    <td style={tdStyle}>{item.actor?.username || 'System'}</td>
-                                    <td style={tdStyle}>{item.comment || '-'}</td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-            )}
+
 
             {/* Approval Signatures Placeholder */}
             <div style={{ marginTop: '3rem', borderTop: '1px solid #ccc', paddingTop: '1rem' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: '2rem' }}>
                     <div>
                         <p style={{ fontWeight: 'bold' }}>Vérifié par // Checked by:</p>
-                        {/* Logic to show manager name if approved/checked */}
                     </div>
                     <div>
                         <p style={{ fontWeight: 'bold' }}>Signataire autorisée // Authorised signatory:</p>

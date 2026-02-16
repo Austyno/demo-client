@@ -24,6 +24,7 @@ const EditRequestForm = () => {
     const { id } = useParams();
     const [descriptionEn, setDescriptionEn] = useState('');
     const [descriptionFr, setDescriptionFr] = useState('');
+    const [referenceNumber, setReferenceNumber] = useState('');
     const [existingDocuments, setExistingDocuments] = useState([]);
     const [files, setFiles] = useState([]);
     const [error, setError] = useState('');
@@ -49,6 +50,7 @@ const EditRequestForm = () => {
                 const data = await response.json();
                 setDescriptionEn(data.descriptionEn);
                 setDescriptionFr(data.descriptionFr);
+                setReferenceNumber(data.referenceNumber);
                 setExistingDocuments(data.documents);
                 if (data.history) {
                     const minuteComments = data.history.filter(h => h.action === 'MINUTE' || h.action === 'REJECT').map(h => h.comment);
@@ -111,10 +113,10 @@ const EditRequestForm = () => {
     }
 
     return (
-        <DashboardLayout role="clerk" title={`Edit Payment Request #${id}`}>
+        <DashboardLayout role="clerk" title={`Edit Payment Request #${referenceNumber || id}`}>
             <Paper sx={{ maxWidth: '600px', margin: '0 auto', p: { xs: 2, sm: 4 }, borderRadius: 2, boxShadow: 'var(--shadow-md)' }}>
                 <Typography variant="h5" fontWeight="bold" gutterBottom>
-                    Edit Payment Request #{id}
+                    Edit Payment Request #{referenceNumber || id}
                 </Typography>
                 
                 {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}

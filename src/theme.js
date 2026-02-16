@@ -3,17 +3,21 @@ import { createTheme } from '@mui/material/styles';
 const theme = createTheme({
     palette: {
         primary: {
-            main: '#2563eb', // Royal Blue
-            dark: '#1e40af',
-            light: '#3b82f6',
+            main: '#7b1fa2', // ISDAO Purple
+            light: '#ae52d4',
+            dark: '#4a0072',
             contrastText: '#ffffff',
         },
         secondary: {
-            main: '#1e40af', // Darker Blue
+            main: '#ed6c02', // ISDAO Orange
+            light: '#ff9d3f',
+            dark: '#b53d00',
+            contrastText: '#ffffff',
         },
         background: {
             default: '#f3f4f6',
             paper: '#ffffff',
+            dark: '#212121', // ISDAO Dark Background
         },
         text: {
             primary: '#111827',
@@ -54,7 +58,7 @@ const theme = createTheme({
                 },
                 containedPrimary: {
                     '&:hover': {
-                        backgroundColor: '#1e40af',
+                        backgroundColor: '#4a0072',
                     },
                 },
             },
@@ -81,7 +85,6 @@ const theme = createTheme({
         MuiDrawer: {
             styleOverrides: {
                 paper: {
-                    backgroundColor: '#1e40af', // Secondary main
                     color: '#ffffff',
                     borderRadius: 0,
                     borderRight: 'none',

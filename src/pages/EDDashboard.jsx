@@ -3,21 +3,19 @@ import DashboardLayout from '../components/DashboardLayout';
 import AnalyticsWidgets from '../components/AnalyticsWidgets';
 import { Typography } from '@mui/material';
 
-const ManagerDashboard = () => {
+const EDDashboard = () => {
     return (
-        <DashboardLayout role="manager" title="Dashboard">
+        <DashboardLayout role="ed" title="ED Dashboard">
             <Typography variant="h4" sx={{ mb: 4, fontWeight: 'bold', textTransform: 'uppercase' }}>
-                MANAGER DASHBOARD
+                EXECUTIVE DIRECTOR DASHBOARD
             </Typography>
             <AnalyticsWidgets />
             {/* 
-                Requests are now in separate pages:
-                - /pending-requests
-                - /approved-requests
-                - /rejected-requests
+                Requests are in separate pages:
+                - /pending-ed-requests
             */}
         </DashboardLayout>
     );
 };
 
-export default ManagerDashboard;
+export default EDDashboard;

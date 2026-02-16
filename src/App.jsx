@@ -14,7 +14,8 @@ import ChatModal from './components/ChatModal';
 
 // Clerk Pages
 import ClerkDashboard from './pages/ClerkDashboard';
-import RequestForm from './pages/RequestForm';
+import CreateRequestStepper from './pages/create-request/CreateRequestStepper';
+import ISDAOPVForm from './pages/ISDAOPVForm';
 import EditRequestForm from './pages/EditRequestForm';
 
 // Manager Pages
@@ -23,8 +24,30 @@ import PendingRequests from './pages/PendingRequests';
 import ApprovedRequests from './pages/ApprovedRequests';
 import RejectedRequests from './pages/RejectedRequests';
 
+import EDDashboard from './pages/EDDashboard';
+import PendingEDRequests from './pages/PendingEDRequests';
+import axios from 'axios';
+import { useAuth } from './context/AuthContext';
+
 function AppContent() {
   const [selectedMessage, setSelectedMessage] = useState(null);
+  const { logout } = useAuth();
+
+  useEffect(() => {
+    // Axios interceptor to handle 401/403 errors (token expired or invalid)
+    const interceptor = axios.interceptors.response.use(
+      (response) => response,
+      (error) => {
+        if (error.response && (error.response.status === 401 || error.response.status === 403)) {
+          logout();
+          window.location.href = '/login';
+        }
+        return Promise.reject(error);
+      }
+    );
+
+    return () => axios.interceptors.response.eject(interceptor);
+  }, [logout]);
 
   useEffect(() => {
     const handleOpenChat = (event) => {
@@ -40,11 +63,12 @@ function AppContent() {
 
       <Route element={<ProtectedRoute roles={['CLERK']} />}>
         <Route path="/clerk-dashboard" element={<ClerkDashboard />} />
-        <Route path="/create-request" element={<RequestForm />} />
+        <Route path="/create-request" element={<CreateRequestStepper />} />
+        <Route path="/isdao-pv" element={<ISDAOPVForm />} />
         <Route path="/edit-request/:id" element={<EditRequestForm />} />
       </Route>
 
-      <Route element={<ProtectedRoute roles={['CLERK', 'MANAGER']} />}>
+      <Route element={<ProtectedRoute roles={['CLERK', 'MANAGER', 'ED']} />}>
         <Route path="/approved-requests" element={<ApprovedRequests />} />
         <Route path="/rejected-requests" element={<RejectedRequests />} />
       </Route>
@@ -52,6 +76,11 @@ function AppContent() {
       <Route element={<ProtectedRoute roles={['MANAGER']} />}>
         <Route path="/manager-dashboard" element={<ManagerDashboard />} />
         <Route path="/pending-requests" element={<PendingRequests />} />
+      </Route>
+
+      <Route element={<ProtectedRoute roles={['ED']} />}>
+        <Route path="/ed-dashboard" element={<EDDashboard />} />
+        <Route path="/pending-ed-requests" element={<PendingEDRequests />} />
       </Route>
 
       <Route path="/" element={<Navigate to="/login" replace />} />

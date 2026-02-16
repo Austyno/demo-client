@@ -47,6 +47,7 @@ const Login = () => {
                 login(data.user, data.token);
                 if (data.user.role === 'CLERK') navigate('/clerk-dashboard');
                 else if (data.user.role === 'MANAGER') navigate('/manager-dashboard');
+                else if (data.user.role === 'ED') navigate('/ed-dashboard');
                 else navigate('/');
             } else {
                 setError('Invalid credentials');

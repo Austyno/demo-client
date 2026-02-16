@@ -29,7 +29,7 @@ import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
 import MessageIcon from '@mui/icons-material/Message';
 import { useTranslation } from 'react-i18next';
 
-const drawerWidth = 240;
+const drawerWidth = 210;
 
 const Sidebar = ({ role, mobileOpen, handleDrawerToggle }) => {
     const location = useLocation();
@@ -37,7 +37,7 @@ const Sidebar = ({ role, mobileOpen, handleDrawerToggle }) => {
     const { t } = useTranslation();
 
     useEffect(() => {
-        if (role === 'manager') {
+        if (role === 'manager' || role === 'ed') {
             fetchPendingCount();
             const interval = setInterval(fetchPendingCount, 30000);
             return () => clearInterval(interval);
@@ -46,8 +46,9 @@ const Sidebar = ({ role, mobileOpen, handleDrawerToggle }) => {
 
     const fetchPendingCount = async () => {
         const token = localStorage.getItem('token');
+        const endpoint = role === 'ed' ? 'ed-tasks' : 'subordinates?status=PENDING_MANAGER';
         try {
-            const response = await fetch(`${API_URL}/api/requests/subordinates?status=PENDING`, {
+            const response = await fetch(`${API_URL}/api/requests/${endpoint}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             if (response.ok) {
@@ -59,7 +60,21 @@ const Sidebar = ({ role, mobileOpen, handleDrawerToggle }) => {
         }
     };
 
-    const menuItems = role === 'manager' ? [
+    const menuItems = role === 'ed' ? [
+        { path: '/ed-dashboard', label: t('nav.dashboard'), icon: <DashboardIcon /> },
+        {
+            path: '/pending-ed-requests',
+            label: t('nav.pending'),
+            icon: (
+                <Badge badgeContent={pendingCount} color="error" sx={{ '& .MuiBadge-badge': { right: -3, top: 3 } }}>
+                    <PendingActionsIcon />
+                </Badge>
+            )
+        },
+        { path: '/approved-requests', label: t('nav.approved'), icon: <CheckCircleOutlineIcon /> },
+        { path: '/rejected-requests', label: t('nav.rejected'), icon: <CancelOutlinedIcon /> },
+        { path: '#', label: t('common.messages'), icon: <MessageIcon /> },
+    ] : role === 'manager' ? [
         { path: '/manager-dashboard', label: t('nav.dashboard'), icon: <DashboardIcon /> },
         {
             path: '/pending-requests',
@@ -101,7 +116,7 @@ const Sidebar = ({ role, mobileOpen, handleDrawerToggle }) => {
                 </Avatar>
 
                 <Typography variant="subtitle1" sx={{ color: 'white', fontWeight: 600 }}>
-                    Hello {role === 'manager' ? 'Manager' : 'User'}
+                    Hello {role === 'ed' ? 'Executive Director' : (role === 'manager' ? 'Manager' : 'User')}
                 </Typography>
                 <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.7)' }}>
                     Check Your Last Transaction!
@@ -148,6 +163,17 @@ const Sidebar = ({ role, mobileOpen, handleDrawerToggle }) => {
         </>
     );
 
+    const getBackgroundColor = () => {
+        switch (role) {
+            case 'manager':
+                return '#ed6c02'; // Orange
+            case 'ed':
+                return '#212121'; // Dark
+            default:
+                return '#7b1fa2'; // Purple (Clerk/Default)
+        }
+    };
+
     return (
         <Box
             component="nav"
@@ -163,7 +189,12 @@ const Sidebar = ({ role, mobileOpen, handleDrawerToggle }) => {
                 }}
                 sx={{
                     display: { xs: 'block', sm: 'none' },
-                    '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
+                    '& .MuiDrawer-paper': { 
+                        boxSizing: 'border-box', 
+                        width: drawerWidth,
+                        backgroundColor: getBackgroundColor(),
+                        color: '#ffffff'
+                    },
                 }}
             >
                 {drawerContent}
@@ -172,7 +203,13 @@ const Sidebar = ({ role, mobileOpen, handleDrawerToggle }) => {
                 variant="permanent"
                 sx={{
                     display: { xs: 'none', sm: 'block' },
-                    '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth, border: 'none' },
+                    '& .MuiDrawer-paper': { 
+                        boxSizing: 'border-box', 
+                        width: drawerWidth, 
+                        border: 'none',
+                        backgroundColor: getBackgroundColor(),
+                        color: '#ffffff'
+                    },
                 }}
                 open
             >

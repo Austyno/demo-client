@@ -22,7 +22,7 @@ const DashboardLayout = ({ children, role, title = "Dashboard" }) => {
                 sx={{
                     flexGrow: 1,
                     p: { xs: 2, sm: 3 },
-                    width: { sm: `calc(100% - 240px)` },
+                    width: { sm: `calc(100% - 210px)` },
                     backgroundColor: 'background.default',
                     minHeight: '100vh',
                 }}
